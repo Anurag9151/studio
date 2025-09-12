@@ -15,4 +15,6 @@ export type AttendanceRecord = {
 
 export type AppSettings = {
   targetPercentage: number;
+  theme?: 'blue' | 'green' | 'purple';
+  mode?: 'light' | 'dark';
 };

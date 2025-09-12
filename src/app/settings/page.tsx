@@ -12,7 +12,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Application Settings</CardTitle>
             <CardDescription>
-              Manage your attendance target and other app settings.
+              Manage your attendance target, theme, and other app settings.
             </CardDescription>
           </CardHeader>
           <CardContent>

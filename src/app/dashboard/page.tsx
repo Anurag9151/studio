@@ -28,17 +28,11 @@ export default function DashboardPage() {
             </Suspense>
           </CardContent>
         </Card>
-        <Card className="col-span-12 lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Analytics</CardTitle>
-            <CardDescription>Visualize your attendance journey.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Suspense fallback={<Skeleton className="h-[200px] w-full" />}>
-              <AttendanceCharts />
-            </Suspense>
-          </CardContent>
-        </Card>
+        
+        <Suspense fallback={<Skeleton className="h-[400px] col-span-12 lg:col-span-3" />}>
+          <AttendanceCharts />
+        </Suspense>
+        
       </div>
     </div>
   );

@@ -1,16 +1,16 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { Subject, AttendanceRecord, AppSettings } from '@/lib/types';
 import useLocalStorage from '@/lib/hooks/use-local-storage';
 
 interface AppContextType {
   subjects: Subject[];
-  setSubjects: (subjects: Subject[]) => void;
+  setSubjects: (subjects: Subject[] | ((prev: Subject[]) => Subject[])) => void;
   attendanceRecords: AttendanceRecord[];
-  setAttendanceRecords: (records: AttendanceRecord[]) => void;
+  setAttendanceRecords: (records: AttendanceRecord[] | ((prev: AttendanceRecord[]) => AttendanceRecord[])) => void;
   settings: AppSettings;
-  setSettings: (settings: AppSettings) => void;
+  setSettings: (settings: AppSettings | ((prev: AppSettings) => AppSettings)) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -18,7 +18,21 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [subjects, setSubjects] = useLocalStorage<Subject[]>('subjects', []);
   const [attendanceRecords, setAttendanceRecords] = useLocalStorage<AttendanceRecord[]>('attendance', []);
-  const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { targetPercentage: 75 });
+  const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { 
+    targetPercentage: 75,
+    theme: 'blue',
+    mode: 'light',
+  });
+
+  useEffect(() => {
+    const applyTheme = () => {
+      document.body.classList.remove('dark', 'light', 'theme-blue', 'theme-green', 'theme-purple');
+      document.body.classList.add(settings.mode || 'light');
+      document.body.classList.add(`theme-${settings.theme || 'blue'}`);
+    };
+    applyTheme();
+  }, [settings]);
+
 
   const value = {
     subjects,
