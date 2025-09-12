@@ -99,27 +99,24 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       <SheetTrigger asChild>
         {children ? children : (
             <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Subject
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Class
             </Button>
         )}
       </SheetTrigger>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{subject ? 'Edit Subject' : 'Add a New Subject'}</SheetTitle>
-          <SheetDescription>
-            {subject ? 'Update the details for this class.' : 'Add a new class to your weekly schedule.'}
-          </SheetDescription>
+      <SheetContent side="bottom" className="rounded-t-lg">
+        <SheetHeader className="text-left">
+          <SheetTitle>{subject ? 'Edit Class' : 'Add Class'}</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">Subject Name</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} className="col-span-3" placeholder="e.g. Physics" />
+            <div className="space-y-2">
+              <Label htmlFor="name">Subject</Label>
+              <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. History" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="day" className="text-right">Day</Label>
+            <div className="space-y-2">
+              <Label htmlFor="day">Day</Label>
               <Select onValueChange={setDay} value={day}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select a day" />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,18 +126,20 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="start-time" className="text-right">Start Time</Label>
-              <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="end-time" className="text-right">End Time</Label>
-              <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="col-span-3" />
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="start-time">Start Time</Label>
+                    <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="end-time">End Time</Label>
+                    <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                </div>
             </div>
           </div>
           <SheetFooter>
             <SheetClose asChild>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" className="w-full">Save</Button>
             </SheetClose>
           </SheetFooter>
         </form>

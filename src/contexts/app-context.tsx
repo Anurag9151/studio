@@ -28,7 +28,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const applyTheme = () => {
       document.body.classList.remove('dark', 'light', 'theme-blue', 'theme-green', 'theme-purple');
       document.body.classList.add(settings.mode || 'light');
-      document.body.classList.add(`theme-${settings.theme || 'blue'}`);
+      // No theme- class for blue, it's the default
+      if (settings.theme && settings.theme !== 'blue') {
+        document.body.classList.add(`theme-${settings.theme}`);
+      }
     };
     applyTheme();
   }, [settings]);

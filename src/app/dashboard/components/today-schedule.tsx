@@ -4,20 +4,8 @@ import { useAppContext } from '@/contexts/app-context';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { format, getDay } from 'date-fns';
-import { Check, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 export default function TodaySchedule() {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -41,7 +29,20 @@ export default function TodaySchedule() {
     let newRecords = [...attendanceRecords];
 
     if (existingRecordIndex > -1) {
-      newRecords[existingRecordIndex] = { ...newRecords[existingRecordIndex], status };
+      // If the user clicks the same status again, unmark it.
+      if(newRecords[existingRecordIndex].status === status) {
+        newRecords.splice(existingRecordIndex, 1);
+         toast({
+          title: "Attendance Unmarked",
+          description: `Attendance for ${subjects.find(s=>s.id === subjectId)?.name} has been cleared.`,
+        });
+      } else {
+        newRecords[existingRecordIndex] = { ...newRecords[existingRecordIndex], status };
+        toast({
+          title: "Attendance Updated",
+          description: `You've marked ${subjects.find(s=>s.id === subjectId)?.name} as ${status}.`,
+        });
+      }
     } else {
       newRecords.push({
         id: crypto.randomUUID(),
@@ -49,13 +50,13 @@ export default function TodaySchedule() {
         date: todayDateStr,
         status,
       });
+      toast({
+        title: "Attendance Marked",
+        description: `You've marked ${subjects.find(s=>s.id === subjectId)?.name} as ${status}.`,
+      });
     }
 
     setAttendanceRecords(newRecords);
-    toast({
-      title: "Attendance Marked",
-      description: `You've marked ${subjects.find(s=>s.id === subjectId)?.name} as ${status}.`,
-    });
   };
 
   const getAttendanceStatus = (subjectId: string) => {
@@ -63,49 +64,34 @@ export default function TodaySchedule() {
   };
 
   if (todaySubjects.length === 0) {
-    return <div className="text-center text-muted-foreground py-10">No classes scheduled for today.</div>;
+    return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg">No classes scheduled for today.</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {todaySubjects.map(subject => {
         const status = getAttendanceStatus(subject.id);
         return (
-          <div key={subject.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <div key={subject.id} className="flex items-center justify-between p-4 bg-card rounded-lg">
             <div>
               <p className="font-semibold">{subject.name}</p>
               <p className="text-sm text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
             </div>
             <div className="flex items-center gap-2">
-              {status ? (
-                <Badge variant={status === 'present' ? 'default' : 'destructive'} className="capitalize">
-                  {status}
-                </Badge>
-              ) : (
-                <>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                       <Button variant="outline" size="sm">Bunk</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure you want to bunk?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will mark "{subject.name}" as absent. This action can be changed later.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleMarkAttendance(subject.id, 'absent')}>Continue</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                  
-                  <Button size="sm" onClick={() => handleMarkAttendance(subject.id, 'present')}>
-                    <Check className="w-4 h-4 mr-1" /> Present
-                  </Button>
-                </>
-              )}
+              <Button 
+                size="sm" 
+                variant={status === 'absent' ? 'destructive' : 'outline'}
+                onClick={() => handleMarkAttendance(subject.id, 'absent')}
+              >
+                Bunk
+              </Button>
+              <Button 
+                size="sm"
+                variant={status === 'present' ? 'default' : 'outline'}
+                onClick={() => handleMarkAttendance(subject.id, 'present')}
+              >
+                Attend
+              </Button>
             </div>
           </div>
         );
