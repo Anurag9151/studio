@@ -38,7 +38,8 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
         console.error(error);
         setStoredValue(initialValue);
     }
-  }, [key, initialValue]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   return [storedValue, setValue];
 }
