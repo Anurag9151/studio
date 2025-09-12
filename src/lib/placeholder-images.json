@@ -1,3 +1,11 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "dashboard-hero",
+      "description": "A vibrant and modern study environment with books and a laptop.",
+      "imageUrl": "https://picsum.photos/seed/10/1200/400",
+      "imageHint": "study desk"
+    }
+  ]
 }
