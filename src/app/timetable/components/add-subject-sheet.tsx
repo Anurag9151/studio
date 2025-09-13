@@ -37,6 +37,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const [open, setOpen] = useState(false);
 
   const [name, setName] = useState(subject?.name || '');
+  const [teacher, setTeacher] = useState(subject?.teacher || '');
   const [day, setDay] = useState<string>(subject?.day?.toString() || '');
   const [startTime, setStartTime] = useState(subject?.startTime || '');
   const [endTime, setEndTime] = useState(subject?.endTime || '');
@@ -67,7 +68,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       // Edit mode
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, day: parseInt(day), startTime, endTime }
+          ? { ...s, name, teacher, day: parseInt(day), startTime, endTime }
           : s
       );
       setSubjects(updatedSubjects);
@@ -77,6 +78,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       const newSubject: Subject = {
         id: crypto.randomUUID(),
         name,
+        teacher,
         day: parseInt(day),
         startTime,
         endTime,
@@ -87,6 +89,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
 
     // Reset form
     setName('');
+    setTeacher('');
     setDay('');
     setStartTime('');
     setEndTime('');
@@ -112,6 +115,11 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
             <div className="bg-muted/50 p-4 rounded-lg">
               <Label htmlFor="name" className="text-sm font-normal text-muted-foreground">Subject</Label>
               <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. History" className="bg-transparent border-none text-base p-0 h-auto" />
+            </div>
+
+             <div className="bg-muted/50 p-4 rounded-lg">
+              <Label htmlFor="teacher" className="text-sm font-normal text-muted-foreground">Teacher (Optional)</Label>
+              <Input id="teacher" value={teacher} onChange={e => setTeacher(e.target.value)} placeholder="e.g. Prof. Smith" className="bg-transparent border-none text-base p-0 h-auto" />
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg">

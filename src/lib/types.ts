@@ -1,6 +1,7 @@
 export type Subject = {
   id: string;
   name: string;
+  teacher?: string;
   day: number; // 0 for Sunday, 1 for Monday, etc.
   startTime: string; // "HH:mm"
   endTime: string; // "HH:mm"
