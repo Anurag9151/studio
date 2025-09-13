@@ -10,11 +10,11 @@ export default function DashboardPage() {
       <Suspense fallback={<Skeleton className="h-24 w-full rounded-lg" />}>
         <AttendanceSummary />
       </Suspense>
-       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-        <TodaySchedule />
-      </Suspense>
       <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
         <SubjectWiseAttendance />
+      </Suspense>
+       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <TodaySchedule />
       </Suspense>
     </div>
   );

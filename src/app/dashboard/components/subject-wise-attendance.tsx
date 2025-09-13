@@ -32,12 +32,10 @@ export default function SubjectWiseAttendance() {
         {subjects.map(subject => {
           const { percentage } = calculateAttendance(subject.id, attendanceRecords, subjects);
           return (
-            <div key={subject.id}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium">{subject.name}</span>
-                <span className="text-sm text-muted-foreground">{percentage}%</span>
-              </div>
-              <Progress value={percentage} className="h-2" />
+            <div key={subject.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-4">
+              <span className="text-sm font-medium truncate">{subject.name}</span>
+              <Progress value={percentage} className="h-2 w-24" />
+              <span className="text-sm text-muted-foreground w-10 text-right">{percentage}%</span>
             </div>
           );
         })}
