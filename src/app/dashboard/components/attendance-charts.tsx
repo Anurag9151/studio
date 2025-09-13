@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { calculateAttendance } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import React from "react";
 
 export default function AttendanceCharts() {
   const { subjects, attendanceRecords } = useAppContext();
@@ -52,8 +53,11 @@ export default function AttendanceCharts() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
+            <CardHeader>
+                <CardTitle>Overall Attendance</CardTitle>
+            </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-[200px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -70,12 +74,36 @@ export default function AttendanceCharts() {
                                 paddingAngle={5}
                             >
                                 {chartData.map((entry) => (
-                                    <Cell key={`cell-${entry.id}`} fill={entry.fill} />
+                                    <Cell key={`cell-pie-${entry.id}`} fill={entry.fill} />
                                 ))}
                             </Pie>
                              <Legend content={<CustomLegend payload={chartData.map(d => ({ value: d.name, color: d.fill }))} />} />
                         </PieChart>
                     </ResponsiveContainer>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+        <Card>
+             <CardHeader>
+                <CardTitle>Subject Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+                 <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                    <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis 
+                            stroke="hsl(var(--muted-foreground))"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}%`}
+                        />
+                        {chartData.map((entry) => (
+                            <React.Fragment key={`bar-fragment-${entry.id}`}>
+                                <Bar dataKey="percentage" fill={entry.fill} radius={[4, 4, 0, 0]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} />
+                            </React.Fragment>
+                        ))}
+                    </BarChart>
                 </ChartContainer>
             </CardContent>
         </Card>
@@ -85,7 +113,7 @@ export default function AttendanceCharts() {
 
 const CustomLegend = ({ payload }: any) => {
   return (
-    <ul className="flex flex-col space-y-2 absolute right-4 top-1/2 -translate-y-1/2">
+    <ul className="flex flex-col space-y-2 absolute right-0 top-1/2 -translate-y-1/2">
       {
         payload.map((entry: any, index: number) => (
           <li key={`item-${index}`} className="flex items-center space-x-2">
