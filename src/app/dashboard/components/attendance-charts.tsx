@@ -15,11 +15,12 @@ export default function AttendanceCharts() {
   const chartData = useMemo(() => {
     return subjects.map(subject => {
       const { percentage } = calculateAttendance(subject.id, attendanceRecords, subjects);
+      const safeName = subject.name.replace(/\s+/g, '-').toLowerCase();
       return {
         id: subject.id,
         name: subject.name,
         percentage: percentage,
-        fill: `var(--color-${subject.name.replace(/\s+/g, '-').toLowerCase()})`
+        fill: `var(--color-${safeName})`
       };
     }).sort((a, b) => b.percentage - a.percentage);
   }, [subjects, attendanceRecords]);
@@ -98,11 +99,11 @@ export default function AttendanceCharts() {
                             axisLine={false}
                             tickFormatter={(value) => `${value}%`}
                         />
-                        {chartData.map((entry) => (
-                            <React.Fragment key={`bar-fragment-${entry.id}`}>
-                                <Bar dataKey="percentage" fill={entry.fill} radius={[4, 4, 0, 0]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} />
-                            </React.Fragment>
-                        ))}
+                        <Bar dataKey="percentage" background={{ fill: 'hsl(var(--muted))', radius: 4 }} radius={[4, 4, 0, 0]}>
+                            {chartData.map((entry) => (
+                                <Cell key={`cell-bar-${entry.id}`} fill={entry.fill} />
+                            ))}
+                        </Bar>
                     </BarChart>
                 </ChartContainer>
             </CardContent>
