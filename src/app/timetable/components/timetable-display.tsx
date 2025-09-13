@@ -1,10 +1,8 @@
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getWeekDays } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,14 +22,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
+import { useMemo } from 'react';
+import { Subject } from '@/lib/types';
 
 export default function TimetableDisplay() {
   const { subjects, setSubjects, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
-  const weekDays = getWeekDays();
-  const [activeDay, setActiveDay] = useState(new Date().getDay());
+
+  const weekDays = getWeekDays().slice(1, 6); // Mon-Fri
 
   const handleDelete = (subjectId: string) => {
     setSubjects(subjects.filter(s => s.id !== subjectId));
@@ -42,10 +40,20 @@ export default function TimetableDisplay() {
         variant: "destructive"
     })
   };
-  
-  const daySubjects = subjects
-    .filter(s => s.day === activeDay)
-    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  const timeSlots = useMemo(() => {
+    const slots = new Set<string>();
+    subjects.forEach(s => {
+        slots.add(s.startTime);
+    });
+    const sortedSlots = Array.from(slots).sort();
+    
+    // Ensure a minimum set of slots for a good default view
+    const defaultSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00'];
+    defaultSlots.forEach(s => slots.add(s));
+
+    return Array.from(slots).sort();
+  }, [subjects]);
 
   if (subjects.length === 0) {
     return (
@@ -56,79 +64,79 @@ export default function TimetableDisplay() {
     )
   }
 
+  const getSubjectForSlot = (dayIndex: number, time: string): Subject | undefined => {
+    return subjects.find(s => s.day === dayIndex + 1 && s.startTime === time);
+  };
+  
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between overflow-x-auto pb-2">
-        {weekDays.map((day, dayIndex) => (
-          <Button
-            key={day}
-            variant={activeDay === dayIndex ? 'default' : 'ghost'}
-            onClick={() => setActiveDay(dayIndex)}
-            className="flex-shrink-0"
-          >
+    <div className="bg-card rounded-lg border overflow-hidden">
+      <div className="grid grid-cols-6">
+        {/* Header Row */}
+        <div className="p-2 text-center font-semibold text-sm text-muted-foreground"></div>
+        {weekDays.map((day) => (
+          <div key={day} className="p-2 text-center font-semibold text-sm text-muted-foreground border-l">
             {day.substring(0, 3)}
-          </Button>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        {daySubjects.length > 0 ? (
-          daySubjects.map(subject => (
-            <Card key={subject.id} className="p-4 relative group">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <p className="font-semibold">{subject.name}</p>
-                        <p className="text-sm text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
-                    </div>
-                     <Badge variant="secondary">{weekDays[subject.day].substring(0,3)}</Badge>
-                </div>
-              
-              <div className="absolute top-1 right-1">
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
-                              <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                          <AddSubjectSheet subject={subject}>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  <span>Edit</span>
-                              </DropdownMenuItem>
-                          </AddSubjectSheet>
-                          
-                          <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      <span>Delete</span>
-                                  </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      This action cannot be undone. This will permanently delete the
-                                      subject and all its attendance records.
-                                  </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDelete(subject.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                  </AlertDialogFooter>
-                              </AlertDialogContent>
-                          </AlertDialog>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
-              </div>
-            </Card>
-          ))
-        ) : (
-          <div className="text-center text-sm text-muted-foreground pt-16 h-full">
-            No classes for {weekDays[activeDay]}.
           </div>
-        )}
+        ))}
+
+        {/* Time Slot Rows */}
+        {timeSlots.map((time) => (
+          <div key={time} className="grid grid-cols-6 col-span-6 border-t items-stretch">
+            <div className="p-2 text-center text-xs font-medium text-muted-foreground flex items-center justify-center">
+              {time}
+            </div>
+            {weekDays.map((_, dayIndex) => {
+                const subject = getSubjectForSlot(dayIndex, time);
+                return (
+                    <div key={dayIndex} className="p-1.5 text-center text-xs border-l flex items-center justify-center min-h-[4rem] relative group">
+                        {subject ? (
+                            <>
+                                <span className="font-medium">{subject.name}</span>
+                                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button className="p-1 rounded-full hover:bg-muted">
+                                                <Edit size={12} />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                             <AddSubjectSheet subject={subject}>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    <span>Edit</span>
+                                                </DropdownMenuItem>
+                                            </AddSubjectSheet>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <span>Delete</span>
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete the
+                                                        subject and all its attendance records.
+                                                    </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDelete(subject.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </>
+                        ) : null}
+                    </div>
+                );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

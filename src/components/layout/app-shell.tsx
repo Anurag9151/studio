@@ -2,10 +2,16 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, BarChart2, User, Home, Plus, MoreVertical, ChevronLeft, Menu } from 'lucide-react';
+import { Calendar, BarChart2, User, Home, Plus, MoreVertical, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddSubjectSheet } from '@/app/timetable/components/add-subject-sheet';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -26,27 +32,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return 'My Attendance Tracker';
   };
 
-  const isSubPage = pathname !== '/dashboard' && pathname !== '/';
+  const isSubPage = !['/dashboard', '/'].includes(pathname);
   const title = getPageTitle();
 
   return (
     <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col">
-      <header className="p-4 md:p-6">
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+      <header className="p-4 md:p-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+            {isSubPage && (
+                <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10">
+                    <ChevronLeft size={24} />
+                </Button>
+            )}
+            <h1 className={cn(
+                "font-bold tracking-tight",
+                isSubPage ? "text-2xl" : "text-3xl"
+            )}>{title}</h1>
+        </div>
+        
+        {pathname.includes('/timetable') && (
+            <AddSubjectSheet>
+                 <Button variant="ghost" size="icon" className="h-10 w-10">
+                    <Plus size={24} />
+                </Button>
+            </AddSubjectSheet>
+        )}
       </header>
       <main className="flex-1 p-4 md:p-6 pt-0">
         {children}
       </main>
       <footer className="sticky bottom-0 left-0 right-0 md:max-w-sm md:mx-auto md:left-auto">
-        {pathname.includes('/timetable') ? (
-           <div className="absolute -top-20 right-6">
-             <AddSubjectSheet>
-                <Button size="icon" className="rounded-full w-14 h-14 shadow-lg">
-                    <Plus size={28} />
-                </Button>
-            </AddSubjectSheet>
-           </div>
-        ) : null}
         <BottomNavBar pathname={pathname} />
       </footer>
     </div>
@@ -72,10 +87,3 @@ function BottomNavBar({ pathname }: { pathname: string }) {
       </nav>
     )
 }
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
