@@ -92,7 +92,7 @@ export default function AttendanceCharts() {
                             width={80}
                             tick={false}
                         />
-                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} />
+                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} key="name" />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
