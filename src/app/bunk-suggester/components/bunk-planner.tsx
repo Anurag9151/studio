@@ -34,8 +34,9 @@ export default function BunkPlanner() {
     const { attended, total, percentage } = calculateAttendance(subjectId, attendanceRecords, subjects);
     
     // Simulate one absence
+    const newAttended = attended;
     const newTotal = total + 1;
-    const newPercentage = newTotal > 0 ? (attended / newTotal) * 100 : 0;
+    const newPercentage = newTotal > 0 ? (newAttended / newTotal) * 100 : 0;
     
     setPrediction({
       original: percentage,

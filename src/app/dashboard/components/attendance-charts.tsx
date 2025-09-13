@@ -1,6 +1,6 @@
 'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 import { BarChart, Bar, XAxis, YAxis } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
 import { useMemo } from "react";
@@ -25,7 +25,8 @@ export default function AttendanceCharts() {
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {};
     subjects.forEach((subject, index) => {
-      config[subject.name.replace(/\s+/g, '-').toLowerCase()] = {
+      const safeName = subject.name.replace(/\s+/g, '-').toLowerCase();
+      config[safeName] = {
         label: subject.name,
         color: `hsl(var(--chart-${(index % 5) + 1}))`,
       };
@@ -52,21 +53,10 @@ export default function AttendanceCharts() {
   return (
     <div className="space-y-6">
         <Card>
-            <CardHeader>
-                <CardTitle>Subject-wise Distribution</CardTitle>
-            </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-[200px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <Tooltip
-                                cursor={{ fill: "hsl(var(--muted))" }}
-                                contentStyle={{
-                                    background: "hsl(var(--background))",
-                                    borderRadius: "var(--radius)",
-                                    border: "1px solid hsl(var(--border))"
-                                }}
-                            />
                             <Pie
                                 data={chartData}
                                 dataKey="percentage"
@@ -78,22 +68,20 @@ export default function AttendanceCharts() {
                                 labelLine={false}
                                 paddingAngle={5}
                             >
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                {chartData.map((entry) => (
+                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                                 ))}
                             </Pie>
+                             <Legend content={<CustomLegend payload={chartData.map(d => ({ value: d.name, color: d.fill }))} />} />
                         </PieChart>
                     </ResponsiveContainer>
                 </ChartContainer>
             </CardContent>
         </Card>
         <Card>
-            <CardHeader>
-                <CardTitle>Attendance Trend</CardTitle>
-            </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                    <BarChart accessibilityLayer data={chartData} layout="vertical" margin={{ left: 10, right: 20 }}>
+                    <BarChart accessibilityLayer data={chartData} margin={{ left: 10, right: 20 }}>
                         <XAxis type="number" dataKey="percentage" domain={[0, 100]} hide />
                         <YAxis
                             dataKey="name"
@@ -102,21 +90,28 @@ export default function AttendanceCharts() {
                             axisLine={false}
                             tickMargin={8}
                             width={80}
-                            tickFormatter={(value) => value.length > 10 ? value.substring(0, 9) + '...' : value}
+                            tick={false}
                         />
-                         <Tooltip
-                            cursor={{ fill: 'hsl(var(--muted))' }}
-                             contentStyle={{
-                                background: "hsl(var(--background))",
-                                borderRadius: "var(--radius)",
-                                border: "1px solid hsl(var(--border))"
-                            }}
-                        />
-                        <Bar dataKey="percentage" radius={[0, 4, 4, 0]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} />
+                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
         </Card>
     </div>
   );
+}
+
+const CustomLegend = ({ payload }: any) => {
+  return (
+    <ul className="flex flex-col space-y-2 absolute right-4 top-1/2 -translate-y-1/2">
+      {
+        payload.map((entry: any, index: number) => (
+          <li key={`item-${index}`} className="flex items-center space-x-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: entry.color}} />
+            <span className="text-sm text-muted-foreground">{entry.value}</span>
+          </li>
+        ))
+      }
+    </ul>
+  )
 }
