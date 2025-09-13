@@ -70,7 +70,7 @@ export default function AttendanceCharts() {
                                 paddingAngle={5}
                             >
                                 {chartData.map((entry) => (
-                                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                    <Cell key={`cell-${entry.id}`} fill={entry.fill} />
                                 ))}
                             </Pie>
                              <Legend content={<CustomLegend payload={chartData.map(d => ({ value: d.name, color: d.fill }))} />} />
@@ -93,7 +93,11 @@ export default function AttendanceCharts() {
                             width={80}
                             tick={false}
                         />
-                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} key="id" />
+                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }}>
+                            {chartData.map((entry) => (
+                                <Cell key={`cell-${entry.id}`} fill={entry.fill} />
+                            ))}
+                        </Bar>
                     </BarChart>
                 </ChartContainer>
             </CardContent>
