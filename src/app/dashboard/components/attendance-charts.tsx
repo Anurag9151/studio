@@ -79,29 +79,6 @@ export default function AttendanceCharts() {
                 </ChartContainer>
             </CardContent>
         </Card>
-        <Card>
-            <CardContent>
-                <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                    <BarChart accessibilityLayer data={chartData} margin={{ left: 10, right: 20 }}>
-                        <XAxis type="number" dataKey="percentage" domain={[0, 100]} hide />
-                        <YAxis
-                            dataKey="name"
-                            type="category"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            width={80}
-                            tick={false}
-                        />
-                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }}>
-                            {chartData.map((entry) => (
-                                <Cell key={`cell-${entry.id}`} fill={entry.fill} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ChartContainer>
-            </CardContent>
-        </Card>
     </div>
   );
 }
