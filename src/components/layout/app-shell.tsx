@@ -36,8 +36,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const title = getPageTitle();
 
   return (
-    <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col">
-      <header className="p-4 md:p-6 flex items-center justify-between">
+    <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col relative">
+      <header className="p-4 md:p-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center gap-2">
             {isSubPage && (
                 <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-10 w-10">
@@ -54,10 +54,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <AddSubjectSheet />
         )}
       </header>
-      <main className="flex-1 p-4 md:p-6 pt-0">
-        {children}
+      <main className="flex-1 overflow-y-auto pb-20">
+        <div className="p-4 md:p-6 pt-0">
+         {children}
+        </div>
       </main>
-      <footer className="sticky bottom-0 left-0 right-0 md:max-w-sm md:mx-auto md:left-auto">
+      <footer className="fixed bottom-0 left-0 right-0 md:max-w-sm md:mx-auto md:left-auto z-10">
         <BottomNavBar pathname={pathname} />
       </footer>
     </div>
