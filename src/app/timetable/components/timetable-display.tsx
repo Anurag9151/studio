@@ -92,10 +92,10 @@ export default function TimetableDisplay() {
                         {subject ? (
                             <>
                                 <span className="font-medium">{subject.name}</span>
-                                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="p-1 rounded-full hover:bg-muted">
+                                            <button className="p-1.5 rounded-full hover:bg-muted">
                                                 <Edit size={12} />
                                             </button>
                                         </DropdownMenuTrigger>
@@ -108,7 +108,7 @@ export default function TimetableDisplay() {
                                             </AddSubjectSheet>
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                                         <Trash2 className="mr-2 h-4 w-4" />
                                                         <span>Delete</span>
                                                     </DropdownMenuItem>

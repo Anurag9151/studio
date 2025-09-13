@@ -51,11 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         
         {pathname.includes('/timetable') && (
-            <AddSubjectSheet>
-                 <Button variant="ghost" size="icon" className="h-10 w-10">
-                    <Plus size={24} />
-                </Button>
-            </AddSubjectSheet>
+            <AddSubjectSheet />
         )}
       </header>
       <main className="flex-1 p-4 md:p-6 pt-0">
