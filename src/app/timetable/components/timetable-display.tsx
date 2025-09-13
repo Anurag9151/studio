@@ -2,7 +2,7 @@
 
 import { useAppContext } from '@/contexts/app-context';
 import { getWeekDays } from '@/lib/utils';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { Subject } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 
 export default function TimetableDisplay() {
   const { subjects, setSubjects, setAttendanceRecords } = useAppContext();
@@ -46,11 +47,12 @@ export default function TimetableDisplay() {
     subjects.forEach(s => {
         slots.add(s.startTime);
     });
-    const sortedSlots = Array.from(slots).sort();
     
     // Ensure a minimum set of slots for a good default view
-    const defaultSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00'];
-    defaultSlots.forEach(s => slots.add(s));
+    if (slots.size === 0) {
+      ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00'].forEach(s => slots.add(s));
+    }
+
 
     return Array.from(slots).sort();
   }, [subjects]);
@@ -95,9 +97,9 @@ export default function TimetableDisplay() {
                                 <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="p-1.5 rounded-full hover:bg-muted">
-                                                <Edit size={12} />
-                                            </button>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                <MoreVertical size={14} />
+                                            </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                              <AddSubjectSheet subject={subject}>

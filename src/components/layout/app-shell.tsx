@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, BarChart2, User, Home, Plus, MoreVertical, ChevronLeft } from 'lucide-react';
+import { Calendar, BarChart2, User, Home, MoreVertical, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddSubjectSheet } from '@/app/timetable/components/add-subject-sheet';
 import { Button } from '@/components/ui/button';
