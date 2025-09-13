@@ -72,12 +72,10 @@ function BottomNavBar({ pathname }: { pathname: string }) {
               const isActive = pathname === item.href;
               return (
                   <Link key={item.href} href={item.href} className={cn(
-                      "flex flex-col items-center justify-center h-full w-full",
+                      "flex flex-col items-center justify-center h-full w-full p-2 rounded-md transition-colors",
                       isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary/80'
                   )}>
-                    <div className="flex flex-col items-center gap-1 p-2 rounded-md transition-colors">
-                      <item.icon className="w-6 h-6" fill={isActive ? 'currentColor' : 'none'} />
-                    </div>
+                    <item.icon className="w-6 h-6" fill={isActive ? 'currentColor' : 'none'} />
                   </Link>
               );
               })}
