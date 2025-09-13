@@ -26,13 +26,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return 'My Attendance Tracker';
   };
 
-  const isDashboard = pathname.includes('/dashboard');
+  const isSubPage = pathname !== '/dashboard' && pathname !== '/';
   const title = getPageTitle();
 
   return (
     <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col">
       <header className="p-4 md:p-6 flex items-center justify-between">
-        {isDashboard ? (
+        {!isSubPage ? (
           <>
             <div className="w-8" />
             <h1 className="text-xl font-bold tracking-tight text-center">{title}</h1>
@@ -44,9 +44,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ChevronLeft className="w-6 h-6" />
             </Button>
             <h1 className="text-xl font-bold tracking-tight text-center">{title}</h1>
-            <Button variant="ghost" size="icon">
-              {pathname.includes('/timetable') ? <MoreVertical className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </Button>
+            <div className="w-10">
+               {pathname.includes('/timetable') ? (
+                 <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="w-6 h-6" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                     <AddSubjectSheet>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            <span>Add Class</span>
+                        </DropdownMenuItem>
+                    </AddSubjectSheet>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
+            </div>
           </>
         )}
       </header>
@@ -88,3 +104,10 @@ function BottomNavBar({ pathname }: { pathname: string }) {
       </nav>
     )
 }
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
