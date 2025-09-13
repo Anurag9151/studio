@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -107,35 +106,39 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         <SheetHeader className="text-left">
           <SheetTitle>{subject ? 'Edit Class' : 'Add Class'}</SheetTitle>
         </SheetHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Subject</Label>
-              <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. History" />
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="flex-1 space-y-4 py-4">
+            
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <Label htmlFor="name" className="text-sm font-normal text-muted-foreground">Subject</Label>
+              <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. History" className="bg-transparent border-none text-base p-0 h-auto" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="day">Day</Label>
-              <Select onValueChange={setDay} value={day}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a day" />
-                </SelectTrigger>
-                <SelectContent>
-                  {weekDays.map((weekday, index) => (
-                    <SelectItem key={weekday} value={index.toString()}>{weekday}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            <div className="bg-muted/50 p-4 rounded-lg">
+                <Label htmlFor="day" className="text-sm font-normal text-muted-foreground">Day</Label>
+                <Select onValueChange={setDay} value={day}>
+                    <SelectTrigger className="bg-transparent border-none text-base p-0 h-auto">
+                        <SelectValue placeholder="Select a day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    {weekDays.map((weekday, index) => (
+                        <SelectItem key={weekday} value={index.toString()}>{weekday}</SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
             </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="start-time">Start Time</Label>
-                    <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+            
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg">
+                    <Label htmlFor="start-time" className="text-sm font-normal text-muted-foreground">Start Time</Label>
+                    <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-transparent border-none text-base p-0 h-auto" />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="end-time">End Time</Label>
-                    <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                <div className="bg-muted/50 p-4 rounded-lg">
+                    <Label htmlFor="end-time" className="text-sm font-normal text-muted-foreground">End Time</Label>
+                    <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-transparent border-none text-base p-0 h-auto" />
                 </div>
             </div>
+
           </div>
           <SheetFooter>
             <SheetClose asChild>
