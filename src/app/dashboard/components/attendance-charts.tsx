@@ -15,6 +15,7 @@ export default function AttendanceCharts() {
     return subjects.map(subject => {
       const { percentage } = calculateAttendance(subject.id, attendanceRecords, subjects);
       return {
+        id: subject.id,
         name: subject.name,
         percentage: percentage,
         fill: `var(--color-${subject.name.replace(/\s+/g, '-').toLowerCase()})`
@@ -92,7 +93,7 @@ export default function AttendanceCharts() {
                             width={80}
                             tick={false}
                         />
-                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} key="name" />
+                        <Bar dataKey="percentage" radius={[4, 4, 4, 4]} background={{ fill: 'hsl(var(--muted))', radius: 4 }} key="id" />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
