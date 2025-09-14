@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from "@/contexts/app-context";
@@ -23,6 +24,7 @@ export default function SettingsForm() {
   // Local state for form fields
   const [isDark, setIsDark] = useState(false);
   const [theme, setTheme] = useState('blue');
+  const [targetPercentage, setTargetPercentage] = useState(75);
   const [workingDays, setWorkingDays] = useState('Mon-Fri');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
@@ -35,6 +37,7 @@ export default function SettingsForm() {
   useEffect(() => {
     setIsDark(settings.mode === 'dark');
     setTheme(settings.theme || 'blue');
+    setTargetPercentage(settings.targetPercentage || 75);
     setWorkingDays(settings.workingDays || 'Mon-Fri');
     setStartTime(settings.startTime || '09:00');
     setEndTime(settings.endTime || '17:00');
@@ -70,6 +73,14 @@ export default function SettingsForm() {
     toast({ title: "Theme Updated", description: `App theme set to ${newTheme}.` });
   };
   
+   const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTarget = parseInt(e.target.value, 10);
+    if (!isNaN(newTarget) && newTarget >= 0 && newTarget <= 100) {
+      setTargetPercentage(newTarget);
+      setSettings(prev => ({ ...prev, targetPercentage: newTarget }));
+    }
+  };
+
   const handleWorkingDaysChange = (value: string) => {
     setWorkingDays(value as 'Mon-Fri');
     setSettings(prev => ({ ...prev, workingDays: value as any }));
@@ -127,6 +138,16 @@ export default function SettingsForm() {
                             <SelectItem value="purple">Purple</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader><CardTitle className="text-xl">Attendance Goal</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="rounded-lg border p-3">
+                    <Label htmlFor="target-attendance" className="text-xs">Target Attendance (%)</Label>
+                    <Input id="target-attendance" type="number" value={targetPercentage} onChange={handleTargetChange} className="bg-transparent border-none p-0 h-auto text-base" min="0" max="100" />
                 </div>
             </CardContent>
         </Card>

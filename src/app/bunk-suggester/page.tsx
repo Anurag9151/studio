@@ -1,8 +1,9 @@
+
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import OverallAttendance from './components/overall-attendance';
-import SubjectWiseAttendance from "./components/subject-wise-attendance";
 import SubjectDistribution from './components/subject-distribution';
+import BunkSuggesterView from './components/bunk-suggester-view';
 
 export default function AnalyticsPage() {
   return (
@@ -10,8 +11,8 @@ export default function AnalyticsPage() {
        <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
         <OverallAttendance />
       </Suspense>
-      <Suspense fallback={<Skeleton className="h-64 w-full rounded-lg" />}>
-        <SubjectWiseAttendance />
+       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+        <BunkSuggesterView />
       </Suspense>
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <SubjectDistribution />

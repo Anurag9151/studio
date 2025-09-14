@@ -1,3 +1,4 @@
+
 export type Subject = {
   id: string;
   name: string;
@@ -21,7 +22,7 @@ export type AppSettings = {
   mode?: 'light' | 'dark';
   workingDays?: 'Mon-Fri' | 'Mon-Sat';
   startTime?: string; // "HH:mm"
-  endTime?: string; // "HH:mm"
+  endTime?: string; // "HH"mm"
   lunchBreak?: boolean;
   remindersEnabled?: boolean;
   reminderTime?: string; // "HH:mm"
