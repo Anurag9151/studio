@@ -24,7 +24,7 @@ export default function SettingsForm() {
   // Local state for form fields
   const [isDark, setIsDark] = useState(false);
   const [theme, setTheme] = useState('blue');
-  const [targetPercentage, setTargetPercentage] = useState(75);
+  const [targetPercentage, setTargetPercentage] = useState<number | string>(75);
   const [workingDays, setWorkingDays] = useState('Mon-Fri');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
@@ -74,10 +74,19 @@ export default function SettingsForm() {
   };
   
    const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTarget = parseInt(e.target.value, 10);
+    const value = e.target.value;
+    // Allow empty string for editing, but store as number in context
+    if (value === '') {
+        setTargetPercentage('');
+        return;
+    }
+
+    const newTarget = parseInt(value, 10);
     if (!isNaN(newTarget) && newTarget >= 0 && newTarget <= 100) {
       setTargetPercentage(newTarget);
       setSettings(prev => ({ ...prev, targetPercentage: newTarget }));
+    } else if (value.length <= 3) { // Allow typing up to 3 digits
+        setTargetPercentage(value);
     }
   };
 
