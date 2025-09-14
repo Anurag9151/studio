@@ -5,7 +5,6 @@ import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { format, getDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 
 export default function TodaySchedule() {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -27,6 +26,7 @@ export default function TodaySchedule() {
     );
 
     let newRecords = [...attendanceRecords];
+    const subjectName = subjects.find(s => s.id === subjectId)?.name || 'the class';
 
     if (existingRecordIndex > -1) {
       // If the user clicks the same status again, unmark it.
@@ -34,13 +34,13 @@ export default function TodaySchedule() {
         newRecords.splice(existingRecordIndex, 1);
          toast({
           title: "Attendance Unmarked",
-          description: `Attendance for ${subjects.find(s=>s.id === subjectId)?.name} has been cleared.`,
+          description: `Attendance for ${subjectName} has been cleared.`,
         });
       } else {
         newRecords[existingRecordIndex] = { ...newRecords[existingRecordIndex], status };
         toast({
           title: "Attendance Updated",
-          description: `You've marked ${subjects.find(s=>s.id === subjectId)?.name} as ${status}.`,
+          description: `You've marked ${subjectName} as ${status}.`,
         });
       }
     } else {
@@ -52,7 +52,7 @@ export default function TodaySchedule() {
       });
       toast({
         title: "Attendance Marked",
-        description: `You've marked ${subjects.find(s=>s.id === subjectId)?.name} as ${status}.`,
+        description: `You've marked ${subjectName} as ${status}.`,
       });
     }
 
@@ -64,7 +64,7 @@ export default function TodaySchedule() {
   };
 
   if (todaySubjects.length === 0) {
-    return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg">No classes scheduled for today.</div>;
+    return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">No classes scheduled for today.</div>;
   }
 
   return (
@@ -72,10 +72,13 @@ export default function TodaySchedule() {
       {todaySubjects.map(subject => {
         const status = getAttendanceStatus(subject.id);
         return (
-          <div key={subject.id} className="flex items-center justify-between p-4 bg-card rounded-lg">
-            <div>
-              <p className="font-semibold">{subject.name}</p>
-              <p className="text-sm text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
+          <div key={subject.id} className="flex items-center justify-between p-4 bg-card rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+               <div className="w-2 h-10 rounded-full" style={{ backgroundColor: subject.color || 'hsl(var(--primary))' }} />
+               <div>
+                <p className="font-semibold">{subject.name}</p>
+                <p className="text-sm text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button 
