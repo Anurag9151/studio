@@ -39,12 +39,12 @@ export default function SubjectWiseAttendance() {
       </CardHeader>
       <CardContent className="space-y-4">
         {subjectsForDisplay.map(subject => {
-          // Pass `true` as the fourth argument to calculate by specific ID
+          // Pass the subject ID and `true` to calculate for this specific instance
           const { percentage } = calculateAttendance(subject.id, subjects, attendanceRecords, true);
           return (
             <div key={subject.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-4">
               <span className="text-sm font-medium truncate">{subject.name}</span>
-              <Progress value={percentage} className="h-2 w-24" indicatorClassName={percentage < 75 ? 'bg-destructive' : 'bg-foreground'} />
+              <Progress value={percentage} className="h-2 w-24" indicatorClassName={percentage < 75 ? 'bg-destructive' : 'bg-primary'} />
               <span className="text-sm text-muted-foreground w-10 text-right">{Math.round(percentage)}%</span>
             </div>
           );
@@ -53,4 +53,3 @@ export default function SubjectWiseAttendance() {
     </Card>
   );
 }
-

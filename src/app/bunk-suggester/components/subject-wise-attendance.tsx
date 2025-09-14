@@ -1,38 +1,21 @@
+
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
 import { useMemo } from "react";
-import { calculateAttendance } from "@/lib/utils";
+import { calculateAttendance, getUniqueSubjects } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
-import { Subject } from "@/lib/types";
 
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
 
   const chartData = useMemo(() => {
-    const uniqueSubjects: { [name: string]: Subject & { ids: string[] } } = {};
+    const uniqueSubjects = getUniqueSubjects(subjects);
 
-    subjects.forEach(subject => {
-      if (!uniqueSubjects[subject.name]) {
-        uniqueSubjects[subject.name] = { ...subject, ids: [subject.id] };
-      } else {
-        uniqueSubjects[subject.name].ids.push(subject.id);
-      }
-    });
-
-    return Object.values(uniqueSubjects).map(uniqueSubject => {
-      let totalAttended = 0;
-      let totalClasses = 0;
-
-      uniqueSubject.ids.forEach(id => {
-        const { attended, total } = calculateAttendance(id, attendanceRecords, subjects);
-        totalAttended += attended;
-        totalClasses += total;
-      });
-      
-      const percentage = totalClasses > 0 ? (totalAttended / totalClasses) * 100 : 0;
+    return uniqueSubjects.map(uniqueSubject => {
+      const { percentage } = calculateAttendance(uniqueSubject.name, subjects, attendanceRecords);
       
       return {
         name: uniqueSubject.name,
@@ -77,27 +60,29 @@ export default function SubjectWiseAttendance() {
         </CardHeader>
         <CardContent>
              <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
-                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis 
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}%`}
-                    />
-                    <Tooltip
-                        cursor={false}
-                        content={<ChartTooltipContent 
-                            formatter={(value) => `${value}%`}
-                        />}
-                    />
-                    <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
-                        {chartData.map((entry) => (
-                            <Cell key={`cell-${entry.name}`} fill={entry.fill} className={`${entry.percentage < 75 ? 'opacity-50' : ''}`} />
-                        ))}
-                    </Bar>
-                </BarChart>
+                <ResponsiveContainer>
+                    <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
+                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis 
+                            stroke="hsl(var(--muted-foreground))"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip
+                            cursor={false}
+                            content={<ChartTooltipContent 
+                                formatter={(value) => `${value}%`}
+                            />}
+                        />
+                        <Bar dataKey="percentage" radius={[4, 4, 0, 0]}>
+                            {chartData.map((entry) => (
+                                <Cell key={`cell-${entry.name}`} fill={entry.fill} className={`${entry.percentage < 75 ? 'opacity-50' : ''}`} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </ChartContainer>
         </CardContent>
     </Card>
