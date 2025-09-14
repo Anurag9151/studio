@@ -58,13 +58,13 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
 
   return (
     <div className="bg-card text-card-foreground overflow-x-auto rounded-lg shadow-lg border-2 border-primary/50">
-        <table className="w-full min-w-max border-collapse">
+        <table className="w-full table-fixed border-collapse">
             <thead>
                 <tr className="bg-primary/80 text-primary-foreground">
-                    <th className="p-2 border border-border text-xs font-semibold uppercase">Time</th>
+                    <th className="p-1 border border-border text-xs font-semibold uppercase w-12">Time</th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-2 border border-border text-xs font-semibold">
-                            {format(new Date(`1970-01-01T${slot}`), 'h:mm a')}
+                        <th key={slot} className="p-1 border border-border text-[10px] font-semibold whitespace-nowrap">
+                            {format(new Date(`1970-01-01T${slot}`), 'h a')}
                         </th>
                     ))}
                 </tr>
@@ -74,7 +74,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                     const isToday = weekDays.indexOf(day) === today;
                     return (
                         <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
-                            <td className="p-2 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
+                            <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
                              {timeSlots.map((slot, slotIndex) => {
                                 if (settings.lunchBreak && slot === lunchTimeSlot) {
                                   const lunchChar = lunchLetters[dayIndex] || '';
@@ -91,16 +91,16 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full rounded-md p-1.5 text-left group relative bg-card hover:bg-muted"
+                                                    className="w-full h-full rounded-md p-1 text-left group relative bg-card hover:bg-muted"
                                                 >
-                                                    <p className="font-bold text-xs truncate text-foreground">{subject.name}</p>
-                                                    {subject.teacher && <p className="text-xs text-muted-foreground opacity-80">{subject.teacher}</p>}
+                                                    <p className="font-bold text-[10px] leading-tight truncate text-foreground">{subject.name}</p>
+                                                    {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 truncate">{subject.teacher}</p>}
                                                 </button>
                                             </AddSubjectSheet>
                                         </td>
                                     )
                                 }
-                                return <td key={`${day}-${slot}`} className="border border-border"></td>
+                                return <td key={`${day}-${slot}`} className="border border-border h-12"></td>
                             })}
                         </tr>
                     )
