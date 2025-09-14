@@ -2,23 +2,30 @@
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { format, getDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import type { Subject } from '@/lib/types';
 
 export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
 
-  const dayOfWeek = getDay(selectedDate);
-  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const dayOfWeek = useMemo(() => getDay(selectedDate), [selectedDate]);
+  const selectedDateStr = useMemo(() => format(selectedDate, 'yyyy-MM-dd'), [selectedDate]);
 
   const todaySubjects = useMemo(() => {
+    if (!isClient) return [];
     return subjects
       .filter(subject => subject.day === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [subjects, dayOfWeek]);
+  }, [subjects, dayOfWeek, isClient]);
 
   const handleMarkAttendance = (subjectId: string, status: 'present' | 'absent') => {
     const existingRecordIndex = attendanceRecords.findIndex(
@@ -34,13 +41,13 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
         newRecords.splice(existingRecordIndex, 1);
          toast({
           title: "Attendance Unmarked",
-          description: `Attendance for ${subjectName} on ${selectedDateStr} has been cleared.`,
+          description: `Attendance for ${subjectName} on ${format(selectedDate, 'do MMM')} has been cleared.`,
         });
       } else {
         newRecords[existingRecordIndex] = { ...newRecords[existingRecordIndex], status };
         toast({
           title: "Attendance Updated",
-          description: `You've marked ${subjectName} as ${status} on ${selectedDateStr}.`,
+          description: `You've marked ${subjectName} as ${status} on ${format(selectedDate, 'do MMM')}.`,
         });
       }
     } else {
@@ -52,7 +59,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
       });
       toast({
         title: "Attendance Marked",
-        description: `You've marked ${subjectName} as ${status} on ${selectedDateStr}.`,
+        description: `You've marked ${subjectName} as ${status} on ${format(selectedDate, 'do MMM')}.`,
       });
     }
 
@@ -62,6 +69,10 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
   const getAttendanceStatus = (subjectId: string) => {
     return attendanceRecords.find(record => record.date === selectedDateStr && record.subjectId === subjectId)?.status;
   };
+
+  if (!isClient) {
+     return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">Loading schedule...</div>;
+  }
 
   if (todaySubjects.length === 0) {
     return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">No classes scheduled for the selected day.</div>;
