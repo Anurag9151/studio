@@ -44,23 +44,31 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
 
     let totalClasses = 0;
     
-    // Find the date of the very first record to start counting from there
-    const firstRecord = attendanceRecords.map(r => parse(r.date, 'yyyy-MM-dd', new Date())).sort((a,b) => a.getTime() - b.getTime())[0];
-    
-    if (firstRecord) {
-        let currentDate = startOfDay(firstRecord);
+    // Find the date of the first ever record for these specific subjects.
+    // This establishes the start of the "semester" for counting purposes.
+    const firstRecordDate = relevantRecords
+        .map(r => parse(r.date, 'yyyy-MM-dd', new Date()))
+        .sort((a, b) => a.getTime() - b.getTime())[0];
+
+    // If there are no records, no classes have been held yet.
+    if (firstRecordDate) {
+        let currentDate = startOfDay(firstRecordDate);
         const today = startOfDay(new Date());
 
+        // Iterate from the first recorded date until today
         while (isBefore(currentDate, today) || currentDate.toDateString() === today.toDateString()) {
             const dayOfWeek = getDay(currentDate);
+            // Count how many of the subjects occurrences happen on this day of the week
             totalClasses += subjectOccurrences.filter(s => s.day === dayOfWeek).length;
             currentDate = addDays(currentDate, 1);
         }
     }
     
-    // If for some reason (like old records from a deleted subject), the calculated total is less than what we have records for, use the record count as a fallback.
-    if (totalClasses < attended + bunked) {
-      totalClasses = attended + bunked;
+    // Fallback: If for some reason the calculation is less than what we have records for,
+    // use the record count. This covers cases where timetable might have changed.
+    const recordedTotal = attended + bunked;
+    if (totalClasses < recordedTotal) {
+      totalClasses = recordedTotal;
     }
 
     const percentage = totalClasses > 0 ? (attended / totalClasses) * 100 : 0;
@@ -136,4 +144,5 @@ export function calculateBunkSuggestion(subjectName: string, allSubjects: Subjec
 export function getWeekDays(): string[] {
   return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 }
+
 
