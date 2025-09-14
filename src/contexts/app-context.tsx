@@ -26,6 +26,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     startTime: '09:00',
     endTime: '17:00',
     lunchBreak: true,
+    remindersEnabled: false,
+    reminderTime: '18:00',
   });
 
   useEffect(() => {

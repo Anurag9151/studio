@@ -23,4 +23,6 @@ export type AppSettings = {
   startTime?: string; // "HH:mm"
   endTime?: string; // "HH:mm"
   lunchBreak?: boolean;
+  remindersEnabled?: boolean;
+  reminderTime?: string; // "HH:mm"
 };

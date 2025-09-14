@@ -27,6 +27,9 @@ export default function SettingsForm() {
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
   const [lunchBreak, setLunchBreak] = useState(true);
+  const [remindersEnabled, setRemindersEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState('18:00');
+
 
   // Sync with context on initial load and when context changes
   useEffect(() => {
@@ -36,6 +39,9 @@ export default function SettingsForm() {
     setStartTime(settings.startTime || '09:00');
     setEndTime(settings.endTime || '17:00');
     setLunchBreak(settings.lunchBreak === undefined ? true : settings.lunchBreak);
+    setRemindersEnabled(settings.remindersEnabled || false);
+    setReminderTime(settings.reminderTime || '18:00');
+
 
     // Apply theme/mode to body
     document.body.classList.toggle('dark', settings.mode === 'dark');
@@ -86,6 +92,17 @@ export default function SettingsForm() {
     toast({ title: "Timetable Updated", description: `Lunch break ${value ? 'enabled' : 'disabled'}.` });
   };
 
+  const handleRemindersToggle = (value: boolean) => {
+    setRemindersEnabled(value);
+    setSettings(prev => ({ ...prev, remindersEnabled: value }));
+    toast({ title: "Reminders Updated", description: `Attendance reminders ${value ? 'enabled' : 'disabled'}.` });
+  };
+
+  const handleReminderTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setReminderTime(e.target.value);
+    setSettings(prev => ({ ...prev, reminderTime: e.target.value }));
+  };
+
   return (
     <div className="space-y-6">
         <Card>
@@ -110,6 +127,24 @@ export default function SettingsForm() {
                             <SelectItem value="purple">Purple</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+            </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader><CardTitle className="text-xl">Notifications</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <Label htmlFor="reminders" className="font-normal">Enable Reminders</Label>
+                    <Switch
+                        id="reminders"
+                        checked={remindersEnabled}
+                        onCheckedChange={handleRemindersToggle}
+                    />
+                </div>
+                 <div className="rounded-lg border p-3">
+                    <Label htmlFor="reminder-time" className="text-xs">Reminder Time</Label>
+                    <Input id="reminder-time" type="time" value={reminderTime} onChange={handleReminderTimeChange} className="bg-transparent border-none p-0 h-auto text-base" disabled={!remindersEnabled} />
                 </div>
             </CardContent>
         </Card>
