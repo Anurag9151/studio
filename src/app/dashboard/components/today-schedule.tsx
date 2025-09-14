@@ -25,7 +25,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
     if (!isClient) return [];
     // Ensure we are comparing numbers with numbers
     return subjects
-      .filter(subject => subject.day === dayOfWeek)
+      .filter(subject => Number(subject.day) === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek, isClient]);
 
