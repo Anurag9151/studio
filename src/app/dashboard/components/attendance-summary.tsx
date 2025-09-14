@@ -23,7 +23,8 @@ export default function AttendanceSummary() {
     let totalClasses = 0;
 
     subjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.id, attendanceRecords, subjects);
+      // Correctly call with byId=true for accurate calculation
+      const { attended, total } = calculateAttendance(subject.id, subjects, attendanceRecords, true);
       totalAttended += attended;
       totalClasses += total;
     });
