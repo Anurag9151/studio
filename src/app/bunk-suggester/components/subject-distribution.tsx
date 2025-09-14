@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
@@ -5,13 +6,15 @@ import { useAppContext } from "@/contexts/app-context";
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { getUniqueSubjects } from "@/lib/utils";
 
 export default function SubjectDistribution() {
   const { subjects, attendanceRecords } = useAppContext();
 
   const totalClassesPerSubject = useMemo(() => {
-    const data = subjects.map(subject => {
-        const total = attendanceRecords.filter(r => r.subjectId === subject.id).length;
+    const uniqueSubjects = getUniqueSubjects(subjects);
+    const data = uniqueSubjects.map(subject => {
+        const total = attendanceRecords.filter(r => subject.originalIds.includes(r.subjectId)).length;
         return {
             name: subject.name,
             total: total,
@@ -24,7 +27,8 @@ export default function SubjectDistribution() {
   
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {};
-    subjects.forEach((subject) => {
+    const uniqueSubjects = getUniqueSubjects(subjects);
+    uniqueSubjects.forEach((subject) => {
       config[subject.name] = {
         label: subject.name,
         color: subject.color,
