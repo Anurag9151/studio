@@ -13,13 +13,18 @@ export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds
   const uniqueSubjectsMap = new Map<string, Subject & { originalIds:string[] }>();
 
   subjects.forEach(subject => {
-    if (!uniqueSubjectsMap.has(subject.name)) {
-      uniqueSubjectsMap.set(subject.name, {
+    const normalizedName = subject.name.trim().toLowerCase();
+    if (!uniqueSubjectsMap.has(normalizedName)) {
+      uniqueSubjectsMap.set(normalizedName, {
         ...subject,
+        name: subject.name.trim(), // Use the trimmed version of the original name for display
         originalIds: [subject.id],
       });
     } else {
-      uniqueSubjectsMap.get(subject.name)?.originalIds.push(subject.id);
+      const existing = uniqueSubjectsMap.get(normalizedName)!;
+      existing.originalIds.push(subject.id);
+      // You might want to merge properties here if needed, e.g. choose a color.
+      // For now, we just keep the properties of the first one encountered.
     }
   });
 
@@ -30,7 +35,7 @@ export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds
 export function calculateAttendance(subjectIdentifier: string, allSubjects: Subject[], attendanceRecords: AttendanceRecord[], byId = false) {
     const subjectOccurrences = byId 
       ? allSubjects.filter(s => s.id === subjectIdentifier)
-      : allSubjects.filter(s => s.name === subjectIdentifier);
+      : allSubjects.filter(s => s.name.trim().toLowerCase() === subjectIdentifier.trim().toLowerCase());
 
     if (subjectOccurrences.length === 0) {
         return { attended: 0, total: 0, bunkedClasses: 0, percentage: 0 };
@@ -46,7 +51,7 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
     
     // Find the date of the first ever record for these specific subjects.
     // This establishes the start of the "semester" for counting purposes.
-    const firstRecordDate = relevantRecords
+    const firstRecordDate = attendanceRecords
         .map(r => parse(r.date, 'yyyy-MM-dd', new Date()))
         .sort((a, b) => a.getTime() - b.getTime())[0];
 
@@ -144,5 +149,6 @@ export function calculateBunkSuggestion(subjectName: string, allSubjects: Subjec
 export function getWeekDays(): string[] {
   return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 }
+
 
 
