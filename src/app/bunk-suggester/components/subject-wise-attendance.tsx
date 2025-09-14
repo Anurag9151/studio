@@ -6,19 +6,41 @@ import { useMemo } from "react";
 import { calculateAttendance } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { Subject } from "@/lib/types";
 
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
 
   const chartData = useMemo(() => {
-    return subjects.map(subject => {
-      const { percentage } = calculateAttendance(subject.id, attendanceRecords, subjects);
+    const uniqueSubjects: { [name: string]: Subject & { ids: string[] } } = {};
+
+    subjects.forEach(subject => {
+      if (!uniqueSubjects[subject.name]) {
+        uniqueSubjects[subject.name] = { ...subject, ids: [subject.id] };
+      } else {
+        uniqueSubjects[subject.name].ids.push(subject.id);
+      }
+    });
+
+    return Object.values(uniqueSubjects).map(uniqueSubject => {
+      let totalAttended = 0;
+      let totalClasses = 0;
+
+      uniqueSubject.ids.forEach(id => {
+        const { attended, total } = calculateAttendance(id, attendanceRecords, subjects);
+        totalAttended += attended;
+        totalClasses += total;
+      });
+      
+      const percentage = totalClasses > 0 ? (totalAttended / totalClasses) * 100 : 0;
+      
       return {
-        name: subject.name,
-        percentage: percentage,
-        fill: subject.color || `hsl(var(--chart-1))`
+        name: uniqueSubject.name,
+        percentage: parseFloat(percentage.toFixed(1)),
+        fill: uniqueSubject.color || `hsl(var(--chart-1))`
       };
     }).sort((a, b) => b.percentage - a.percentage);
+
   }, [subjects, attendanceRecords]);
   
   const chartConfig = useMemo(() => {
