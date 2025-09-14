@@ -1,5 +1,7 @@
+
 'use client';
 
+import React from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { getWeekDays } from '@/lib/utils';
 import { Edit, Trash2, MoreVertical } from 'lucide-react';
@@ -195,7 +197,7 @@ function ExpandedView({ subjects, handleDelete }: { subjects: Subject[], handleD
         workingDayIndexes.forEach(i => grouped[i] = []);
         
         subjects.forEach(subject => {
-            if (grouped[subject.day]) {
+            if (grouped[subject.day] !== undefined) {
                 grouped[subject.day].push(subject);
             }
         });
