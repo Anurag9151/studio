@@ -2,7 +2,7 @@
 
 import { useAppContext } from '@/contexts/app-context';
 import { getWeekDays } from '@/lib/utils';
-import { Edit, Trash2, MoreVertical, View } from 'lucide-react';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,11 +40,12 @@ export default function TimetableDisplay() {
   const today = getDay(new Date());
 
   const workingDays = useMemo(() => {
-    const days = weekDays.slice(1, 6); // Mon-Fri
+    // getDay() returns 0 for Sun, 1 for Mon, etc. We want the names.
+    const dayNames = weekDays.slice(1, 6); // Mon-Fri
     if (settings.workingDays === 'Mon-Sat') {
-      days.push(weekDays[6]); // Add Saturday
+      dayNames.push(weekDays[6]); // Add Saturday
     }
-    return days;
+    return dayNames;
   }, [settings.workingDays, weekDays]);
 
   const timeSlots = useMemo(() => {
@@ -69,14 +70,6 @@ export default function TimetableDisplay() {
         variant: "destructive"
     })
   };
-
-  const getSubjectInitials = (name: string) => {
-    const words = name.split(' ');
-    if (words.length > 1) {
-      return words.map(w => w[0]).join('').toUpperCase();
-    }
-    return name.substring(0, 3).toUpperCase();
-  }
 
   const subjectsByDayTime = useMemo(() => {
     const grid: { [key: string]: { [key: string]: Subject | 'lunch' | null } } = {};
@@ -134,7 +127,7 @@ export default function TimetableDisplay() {
             <ExpandedView subjects={subjects} handleDelete={handleDelete} />
         ) : (
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
-                <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max">
+                <div className={`grid grid-cols-[auto_repeat(${workingDays.length},_minmax(0,_1fr))] min-w-max`}>
                     <div className="p-2 border-b border-r text-xs font-semibold text-muted-foreground sticky left-0 bg-card"></div>
                     {workingDays.map(day => (
                         <div key={day} className={cn("p-2 text-center border-b text-xs font-semibold", weekDays.indexOf(day) === today ? "bg-primary/10 text-primary" : "text-muted-foreground")}>
@@ -143,7 +136,7 @@ export default function TimetableDisplay() {
                     ))}
                 
                     {timeSlots.map(slot => (
-                        <>
+                        <React.Fragment key={slot}>
                             <div className="p-2 border-r text-xs text-muted-foreground h-20 flex items-center justify-center sticky left-0 bg-card">
                                 {format(new Date(`1970-01-01T${slot}`), 'h a')}
                             </div>
@@ -165,8 +158,8 @@ export default function TimetableDisplay() {
                                             <AddSubjectSheet subject={subjectInfo}>
                                                 <button className="w-full h-full bg-primary/10 rounded-md p-1 text-left group relative">
                                                     <p className="font-bold text-xs text-primary truncate">{subjectInfo.name}</p>
-                                                    <p className="text-xs text-primary/70">{subjectInfo.startTime}</p>
-                                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <p className="text-xs text-primary/70">{subjectInfo.teacher}</p>
+                                                    <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Edit size={12} className="text-primary/70" />
                                                     </div>
                                                 </button>
@@ -176,7 +169,7 @@ export default function TimetableDisplay() {
                                 }
                                 return <div key={`${day}-${slot}`} className="border-l"></div>
                             })}
-                        </>
+                        </React.Fragment>
                     ))}
                 </div>
             </div>
@@ -187,21 +180,31 @@ export default function TimetableDisplay() {
 
 function ExpandedView({ subjects, handleDelete }: { subjects: Subject[], handleDelete: (id: string) => void }) {
     const weekDays = getWeekDays();
+    const { settings } = useAppContext();
+    
+    const workingDayIndexes = useMemo(() => {
+        const indexes = [1, 2, 3, 4, 5]; // Mon-Fri
+        if (settings.workingDays === 'Mon-Sat') {
+            indexes.push(6); // Add Saturday
+        }
+        return indexes;
+    }, [settings.workingDays]);
+
     const subjectsByDay = useMemo(() => {
         const grouped: { [key: number]: Subject[] } = {};
-        for (let i = 1; i < 7; i++) {
-            grouped[i] = [];
-        }
+        workingDayIndexes.forEach(i => grouped[i] = []);
+        
         subjects.forEach(subject => {
             if (grouped[subject.day]) {
                 grouped[subject.day].push(subject);
             }
         });
+
         for (const day in grouped) {
             grouped[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
         }
         return grouped;
-    }, [subjects]);
+    }, [subjects, workingDayIndexes]);
 
     return (
         <div className="space-y-4">
