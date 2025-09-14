@@ -38,7 +38,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
 
   const [name, setName] = useState(subject?.name || '');
   const [teacher, setTeacher] = useState(subject?.teacher || '');
-  const [day, setDay] = useState<string>(subject?.day?.toString() || '');
+  const [day, setDay] = useState<string>(subject?.day !== undefined ? String(subject.day) : '');
   const [startTime, setStartTime] = useState(subject?.startTime || '');
   const [endTime, setEndTime] = useState(subject?.endTime || '');
   const [color, setColor] = useState(subject?.color || '#3b82f6');
@@ -66,11 +66,22 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       return;
     }
 
+    const numericDay = parseInt(day, 10);
+    if (isNaN(numericDay)) {
+        toast({
+            title: "Invalid Day",
+            description: "Please select a valid day.",
+            variant: "destructive",
+        });
+        return;
+    }
+
+
     if (subject) {
       // Edit mode
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, teacher, day: parseInt(day), startTime, endTime, color }
+          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color }
           : s
       );
       setSubjects(updatedSubjects);
@@ -81,7 +92,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         id: crypto.randomUUID(),
         name,
         teacher,
-        day: parseInt(day),
+        day: numericDay,
         startTime,
         endTime,
         color,
@@ -149,7 +160,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
                     </SelectTrigger>
                     <SelectContent>
                     {weekDays.map((weekday, index) => (
-                        <SelectItem key={weekday} value={index.toString()}>{weekday}</SelectItem>
+                        <SelectItem key={weekday} value={String(index)}>{weekday}</SelectItem>
                     ))}
                     </SelectContent>
                 </Select>

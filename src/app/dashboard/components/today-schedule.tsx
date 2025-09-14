@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { format, getDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import type { Subject } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -22,6 +23,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
   const todaySubjects = useMemo(() => {
     if (!isClient) return [];
+    // Ensure we are comparing numbers with numbers
     return subjects
       .filter(subject => subject.day === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -71,7 +73,13 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
   };
 
   if (!isClient) {
-     return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">Loading schedule...</div>;
+     return (
+        <div className="space-y-3">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+        </div>
+     );
   }
 
   if (todaySubjects.length === 0) {
