@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,15 +36,28 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const [name, setName] = useState(subject?.name || '');
-  const [teacher, setTeacher] = useState(subject?.teacher || '');
-  const [day, setDay] = useState<string>(subject?.day !== undefined ? String(subject.day) : '');
-  const [startTime, setStartTime] = useState(subject?.startTime || '');
-  const [endTime, setEndTime] = useState(subject?.endTime || '');
-  const [color, setColor] = useState(subject?.color || '#3b82f6');
-
+  // Form state
+  const [name, setName] = useState('');
+  const [teacher, setTeacher] = useState('');
+  const [day, setDay] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [color, setColor] = useState('#3b82f6');
+  
   const weekDays = getWeekDays();
   const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
+  
+  useEffect(() => {
+    if (open) {
+      setName(subject?.name || '');
+      setTeacher(subject?.teacher || '');
+      setDay(subject?.day !== undefined ? String(subject.day) : '');
+      setStartTime(subject?.startTime || '');
+      setEndTime(subject?.endTime || '');
+      setColor(subject?.color || '#3b82f6');
+    }
+  }, [open, subject]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,13 +114,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       toast({ title: "Subject Added", description: `${name} has been added to your timetable.` });
     }
 
-    // Reset form
-    setName('');
-    setTeacher('');
-    setDay('');
-    setStartTime('');
-    setEndTime('');
-    setColor('#3b82f6');
     setOpen(false);
   };
 
