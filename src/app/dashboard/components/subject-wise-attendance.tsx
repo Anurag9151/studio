@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -9,20 +10,14 @@ import { useMemo } from 'react';
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
 
-  const uniqueSubjects = useMemo(() => {
-    const subjectMap = new Map();
-    subjects.forEach(subject => {
-        // Since timetable allows multiple entries for the same subject on different days,
-        // we group them by name for a consolidated view.
-        if (!subjectMap.has(subject.name)) {
-            subjectMap.set(subject.name, subject);
-        }
-    });
-    return Array.from(subjectMap.values());
+  // On the dashboard, we want to show every single class instance from the timetable
+  // unlike the analytics page where we group them.
+  const subjectsForDisplay = useMemo(() => {
+    return subjects.sort((a,b) => a.name.localeCompare(b.name));
   }, [subjects]);
 
 
-  if (uniqueSubjects.length === 0) {
+  if (subjectsForDisplay.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -43,13 +38,14 @@ export default function SubjectWiseAttendance() {
         <CardTitle>Subject-wise Attendance</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {uniqueSubjects.map(subject => {
-          const { percentage } = calculateAttendance(subject.id, attendanceRecords, subjects);
+        {subjectsForDisplay.map(subject => {
+          // Pass `true` as the fourth argument to calculate by specific ID
+          const { percentage } = calculateAttendance(subject.id, subjects, attendanceRecords, true);
           return (
             <div key={subject.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-4">
               <span className="text-sm font-medium truncate">{subject.name}</span>
-              <Progress value={percentage} className="h-2 w-24" />
-              <span className="text-sm text-muted-foreground w-10 text-right">{percentage}%</span>
+              <Progress value={percentage} className="h-2 w-24" indicatorClassName={percentage < 75 ? 'bg-destructive' : 'bg-foreground'} />
+              <span className="text-sm text-muted-foreground w-10 text-right">{Math.round(percentage)}%</span>
             </div>
           );
         })}
@@ -57,3 +53,4 @@ export default function SubjectWiseAttendance() {
     </Card>
   );
 }
+

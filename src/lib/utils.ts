@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds: string[] })[] {
-  const uniqueSubjectsMap = new Map<string, Subject & { originalIds: string[] }>();
+  const uniqueSubjectsMap = new Map<string, Subject & { originalIds:string[] }>();
 
   subjects.forEach(subject => {
     if (!uniqueSubjectsMap.has(subject.name)) {
@@ -27,8 +27,11 @@ export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds
 }
 
 
-export function calculateAttendance(subjectName: string, allSubjects: Subject[], attendanceRecords: AttendanceRecord[]) {
-    const subjectOccurrences = allSubjects.filter(s => s.name === subjectName);
+export function calculateAttendance(subjectIdentifier: string, allSubjects: Subject[], attendanceRecords: AttendanceRecord[], byId = false) {
+    const subjectOccurrences = byId 
+      ? allSubjects.filter(s => s.id === subjectIdentifier)
+      : allSubjects.filter(s => s.name === subjectIdentifier);
+
     if (subjectOccurrences.length === 0) {
         return { attended: 0, total: 0, bunkedClasses: 0, percentage: 0 };
     }
@@ -40,9 +43,12 @@ export function calculateAttendance(subjectName: string, allSubjects: Subject[],
     const bunked = relevantRecords.filter(r => r.status === 'absent').length;
 
     let totalClasses = 0;
-    if (relevantRecords.length > 0) {
-        const firstRecordDate = relevantRecords.map(r => parse(r.date, 'yyyy-MM-dd', new Date())).sort((a,b) => a.getTime() - b.getTime())[0];
-        let currentDate = startOfDay(firstRecordDate);
+    
+    // Find the date of the very first record to start counting from there
+    const firstRecord = attendanceRecords.map(r => parse(r.date, 'yyyy-MM-dd', new Date())).sort((a,b) => a.getTime() - b.getTime())[0];
+    
+    if (firstRecord) {
+        let currentDate = startOfDay(firstRecord);
         const today = startOfDay(new Date());
 
         while (isBefore(currentDate, today) || currentDate.toDateString() === today.toDateString()) {
@@ -52,7 +58,7 @@ export function calculateAttendance(subjectName: string, allSubjects: Subject[],
         }
     }
     
-    // If calculated total is less than what we have records for, use the record count
+    // If for some reason (like old records from a deleted subject), the calculated total is less than what we have records for, use the record count as a fallback.
     if (totalClasses < attended + bunked) {
       totalClasses = attended + bunked;
     }
@@ -63,7 +69,7 @@ export function calculateAttendance(subjectName: string, allSubjects: Subject[],
         attended: attended,
         total: totalClasses,
         bunkedClasses: bunked,
-        percentage: percentage,
+        percentage: parseFloat(percentage.toFixed(1)),
     };
 }
 
@@ -130,3 +136,4 @@ export function calculateBunkSuggestion(subjectName: string, allSubjects: Subjec
 export function getWeekDays(): string[] {
   return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 }
+
