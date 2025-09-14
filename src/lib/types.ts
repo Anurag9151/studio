@@ -18,4 +18,8 @@ export type AppSettings = {
   targetPercentage: number;
   theme?: 'blue' | 'green' | 'purple';
   mode?: 'light' | 'dark';
+  workingDays?: 'Mon-Fri' | 'Mon-Sat';
+  startTime?: string; // "HH:mm"
+  endTime?: string; // "HH:mm"
+  lunchBreak?: boolean;
 };

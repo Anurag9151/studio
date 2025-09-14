@@ -2,7 +2,7 @@
 
 import { useAppContext } from '@/contexts/app-context';
 import { getWeekDays } from '@/lib/utils';
-import { Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Edit, Trash2, MoreVertical, View } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,49 +22,93 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Subject } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
-const timeSlots = [
-  '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'
-];
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getDay, format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function TimetableDisplay() {
-  const { subjects, setSubjects, setAttendanceRecords } = useAppContext();
+  const { subjects, setSubjects, settings, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
+  const [isExpandedView, setIsExpandedView] = useState(false);
 
   const weekDays = getWeekDays();
+  const today = getDay(new Date());
+
+  const workingDays = useMemo(() => {
+    const days = weekDays.slice(1, 6); // Mon-Fri
+    if (settings.workingDays === 'Mon-Sat') {
+      days.push(weekDays[6]); // Add Saturday
+    }
+    return days;
+  }, [settings.workingDays, weekDays]);
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    const start = parseInt(settings.startTime?.split(':')[0] || '9');
+    const end = parseInt(settings.endTime?.split(':')[0] || '17');
+    for (let i = start; i < end; i++) {
+      slots.push(`${i.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+  }, [settings.startTime, settings.endTime]);
 
   const handleDelete = (subjectId: string) => {
+    const subjectToDelete = subjects.find(s => s.id === subjectId);
+    if (!subjectToDelete) return;
+
     setSubjects(subjects.filter(s => s.id !== subjectId));
     setAttendanceRecords(records => records.filter(r => r.subjectId !== subjectId));
     toast({
         title: "Subject Deleted",
-        description: "The subject and its attendance records have been removed.",
+        description: `${subjectToDelete.name} has been removed.`,
         variant: "destructive"
     })
   };
 
+  const getSubjectInitials = (name: string) => {
+    const words = name.split(' ');
+    if (words.length > 1) {
+      return words.map(w => w[0]).join('').toUpperCase();
+    }
+    return name.substring(0, 3).toUpperCase();
+  }
+
   const subjectsByDayTime = useMemo(() => {
-    const grid: { [key: number]: { [key: string]: Subject | null } } = {};
-    weekDays.forEach((_, dayIndex) => {
-      grid[dayIndex] = {};
+    const grid: { [key: string]: { [key: string]: Subject | 'lunch' | null } } = {};
+    workingDays.forEach(day => {
+      grid[day] = {};
       timeSlots.forEach(slot => {
-        grid[dayIndex][slot] = null;
+        grid[day][slot] = null;
       });
     });
 
     subjects.forEach(subject => {
-      const startHour = parseInt(subject.startTime.split(':')[0]);
-      const slot = timeSlots.find(s => parseInt(s.split(':')[0]) === startHour);
-      if (slot && subject.day >= 1 && subject.day <= 5) { // Only Monday to Friday
-         grid[subject.day][slot] = subject;
-      }
+        const dayName = weekDays[subject.day];
+        if (grid[dayName]) {
+            const startHour = parseInt(subject.startTime.split(':')[0]);
+            const slot = timeSlots.find(s => parseInt(s.split(':')[0]) === startHour);
+            if (slot) {
+                grid[dayName][slot] = subject;
+            }
+        }
     });
+
+    if (settings.lunchBreak) {
+        const lunchSlot = '13:00';
+        if(timeSlots.includes(lunchSlot)) {
+            workingDays.forEach(day => {
+                grid[day][lunchSlot] = 'lunch';
+            });
+        }
+    }
+
     return grid;
-  }, [subjects, weekDays]);
+  }, [subjects, workingDays, timeSlots, weekDays, settings.lunchBreak]);
 
   if (subjects.length === 0) {
     return (
@@ -76,80 +120,145 @@ export default function TimetableDisplay() {
   }
 
   return (
-    <div className="rounded-lg border bg-card overflow-x-auto">
-      <Table className="min-w-max">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-24 font-bold">Time</TableHead>
-            {weekDays.slice(1, 6).map(day => ( // Monday to Friday
-              <TableHead key={day} className="text-center font-bold">{day}</TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {timeSlots.slice(0, -1).map((slot, timeIndex) => (
-            <TableRow key={slot}>
-              <TableCell className="text-muted-foreground text-xs">
-                {slot} - {timeSlots[timeIndex + 1]}
-              </TableCell>
-              {weekDays.slice(1, 6).map((_, dayIndex) => {
-                const day = dayIndex + 1;
-                const subject = subjectsByDayTime[day]?.[slot];
-                if (subject) {
-                  return (
-                    <TableCell key={`${day}-${slot}`} className="p-1 align-top h-24">
-                       <div className="bg-muted/30 rounded-md p-2 h-full group relative">
-                          <p className="font-semibold text-sm truncate">{subject.name}</p>
-                          {subject.teacher && <p className="text-xs text-muted-foreground truncate">{subject.teacher}</p>}
-                          <p className="text-xs text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
-                          <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                        <MoreVertical size={14} />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                      <AddSubjectSheet subject={subject}>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            <span>Edit</span>
-                                        </DropdownMenuItem>
-                                    </AddSubjectSheet>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Delete</span>
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This action cannot be undone. This will permanently delete the
-                                                subject and all its attendance records.
-                                            </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(subject.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                       </div>
-                    </TableCell>
-                  );
-                }
-                return <TableCell key={`${day}-${slot}`}></TableCell>;
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+    <div className="space-y-4">
+        <div className="flex items-center justify-end space-x-2">
+            <Label htmlFor="view-toggle">Expanded View</Label>
+            <Switch
+                id="view-toggle"
+                checked={isExpandedView}
+                onCheckedChange={setIsExpandedView}
+            />
+        </div>
+
+        {isExpandedView ? (
+            <ExpandedView subjects={subjects} handleDelete={handleDelete} />
+        ) : (
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
+                <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max">
+                    <div className="p-2 border-b border-r text-xs font-semibold text-muted-foreground sticky left-0 bg-card"></div>
+                    {workingDays.map(day => (
+                        <div key={day} className={cn("p-2 text-center border-b text-xs font-semibold", weekDays.indexOf(day) === today ? "bg-primary/10 text-primary" : "text-muted-foreground")}>
+                            {day.substring(0, 3)}
+                        </div>
+                    ))}
+                
+                    {timeSlots.map(slot => (
+                        <>
+                            <div className="p-2 border-r text-xs text-muted-foreground h-20 flex items-center justify-center sticky left-0 bg-card">
+                                {format(new Date(`1970-01-01T${slot}`), 'h a')}
+                            </div>
+                            {workingDays.map(day => {
+                                const subject = subjectsByDayTime[day]?.[slot];
+                                if (subject === 'lunch') {
+                                    return (
+                                        <div key={`${day}-${slot}`} className="p-1 border-l">
+                                            <div className="h-full flex items-center justify-center text-muted-foreground/50 text-xs">
+                                                Lunch
+                                            </div>
+                                        </div>
+                                    )
+                                }
+                                if (subject) {
+                                    const subjectInfo = subject as Subject;
+                                    return (
+                                        <div key={`${day}-${slot}`} className="p-1 border-l">
+                                            <AddSubjectSheet subject={subjectInfo}>
+                                                <button className="w-full h-full bg-primary/10 rounded-md p-1 text-left group relative">
+                                                    <p className="font-bold text-xs text-primary truncate">{subjectInfo.name}</p>
+                                                    <p className="text-xs text-primary/70">{subjectInfo.startTime}</p>
+                                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Edit size={12} className="text-primary/70" />
+                                                    </div>
+                                                </button>
+                                            </AddSubjectSheet>
+                                        </div>
+                                    )
+                                }
+                                return <div key={`${day}-${slot}`} className="border-l"></div>
+                            })}
+                        </>
+                    ))}
+                </div>
+            </div>
+        )}
     </div>
   );
+}
+
+function ExpandedView({ subjects, handleDelete }: { subjects: Subject[], handleDelete: (id: string) => void }) {
+    const weekDays = getWeekDays();
+    const subjectsByDay = useMemo(() => {
+        const grouped: { [key: number]: Subject[] } = {};
+        for (let i = 1; i < 7; i++) {
+            grouped[i] = [];
+        }
+        subjects.forEach(subject => {
+            if (grouped[subject.day]) {
+                grouped[subject.day].push(subject);
+            }
+        });
+        for (const day in grouped) {
+            grouped[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        }
+        return grouped;
+    }, [subjects]);
+
+    return (
+        <div className="space-y-4">
+            {Object.entries(subjectsByDay).filter(([, daySubjects]) => daySubjects.length > 0).map(([day, daySubjects]) => (
+                <Card key={day}>
+                    <CardHeader>
+                        <CardTitle className="text-lg">{weekDays[parseInt(day)]}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {daySubjects.map(subject => (
+                            <div key={subject.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                <div>
+                                    <p className="font-semibold">{subject.name}</p>
+                                    <p className="text-sm text-muted-foreground">{subject.startTime} - {subject.endTime}</p>
+                                    {subject.teacher && <p className="text-xs text-muted-foreground pt-1">{subject.teacher}</p>}
+                                </div>
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical size={16} />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <AddSubjectSheet subject={subject}>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                <span>Edit</span>
+                                            </DropdownMenuItem>
+                                        </AddSubjectSheet>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Delete</span>
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the
+                                                    subject and all its attendance records.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(subject.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
 }

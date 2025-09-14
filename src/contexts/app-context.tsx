@@ -22,6 +22,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     targetPercentage: 75,
     theme: 'blue',
     mode: 'light',
+    workingDays: 'Mon-Fri',
+    startTime: '09:00',
+    endTime: '17:00',
+    lunchBreak: true,
   });
 
   useEffect(() => {
