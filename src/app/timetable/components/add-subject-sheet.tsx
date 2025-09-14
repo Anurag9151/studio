@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -48,13 +49,26 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
   
   useEffect(() => {
+    // This effect now correctly resets the form state whenever the sheet is opened
+    // or the subject being edited changes.
     if (open) {
-      setName(subject?.name || '');
-      setTeacher(subject?.teacher || '');
-      setDay(subject?.day !== undefined ? String(subject.day) : '');
-      setStartTime(subject?.startTime || '');
-      setEndTime(subject?.endTime || '');
-      setColor(subject?.color || '#3b82f6');
+      if (subject) {
+        // Editing existing subject
+        setName(subject.name || '');
+        setTeacher(subject.teacher || '');
+        setDay(subject.day !== undefined ? String(subject.day) : '');
+        setStartTime(subject.startTime || '');
+        setEndTime(subject.endTime || '');
+        setColor(subject.color || '#3b82f6');
+      } else {
+        // Adding a new subject, reset to defaults
+        setName('');
+        setTeacher('');
+        setDay('');
+        setStartTime('');
+        setEndTime('');
+        setColor('#3b82f6');
+      }
     }
   }, [open, subject]);
 
@@ -79,6 +93,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       return;
     }
 
+    // Always parse the day to ensure it's a number before saving.
     const numericDay = parseInt(day, 10);
     if (isNaN(numericDay)) {
         toast({
@@ -91,7 +106,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
 
 
     if (subject) {
-      // Edit mode
+      // Edit mode: Find the subject and update it
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
           ? { ...s, name, teacher, day: numericDay, startTime, endTime, color }
@@ -100,7 +115,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       setSubjects(updatedSubjects);
       toast({ title: "Subject Updated", description: `${name} has been updated.` });
     } else {
-      // Add mode
+      // Add mode: Create a new subject
       const newSubject: Subject = {
         id: crypto.randomUUID(),
         name,
@@ -131,7 +146,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
           <SheetTitle>{subject ? 'Edit Class' : 'Add Class'}</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <div className="flex-1 space-y-4 py-4">
+          <div className="flex-1 space-y-4 py-4 overflow-y-auto">
             
             <div className="bg-muted/50 p-4 rounded-lg">
               <Label htmlFor="name" className="text-sm font-normal text-muted-foreground">Subject</Label>
@@ -186,11 +201,14 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
           </div>
           <SheetFooter>
             <SheetClose asChild>
-                <Button type="submit" className="w-full">Save</Button>
+                <Button type="button" variant="outline">Cancel</Button>
             </SheetClose>
+            <Button type="submit" className="w-full">Save</Button>
           </SheetFooter>
         </form>
       </SheetContent>
     </Sheet>
   );
 }
+
+    
