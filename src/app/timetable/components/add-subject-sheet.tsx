@@ -41,8 +41,10 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const [day, setDay] = useState<string>(subject?.day?.toString() || '');
   const [startTime, setStartTime] = useState(subject?.startTime || '');
   const [endTime, setEndTime] = useState(subject?.endTime || '');
+  const [color, setColor] = useState(subject?.color || '#3b82f6');
 
   const weekDays = getWeekDays();
+  const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +70,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       // Edit mode
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, teacher, day: parseInt(day), startTime, endTime }
+          ? { ...s, name, teacher, day: parseInt(day), startTime, endTime, color }
           : s
       );
       setSubjects(updatedSubjects);
@@ -82,6 +84,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         day: parseInt(day),
         startTime,
         endTime,
+        color,
       };
       setSubjects([...subjects, newSubject]);
       toast({ title: "Subject Added", description: `${name} has been added to your timetable.` });
@@ -93,6 +96,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
     setDay('');
     setStartTime('');
     setEndTime('');
+    setColor('#3b82f6');
     setOpen(false);
   };
 
@@ -120,6 +124,21 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
              <div className="bg-muted/50 p-4 rounded-lg">
               <Label htmlFor="teacher" className="text-sm font-normal text-muted-foreground">Teacher (Optional)</Label>
               <Input id="teacher" value={teacher} onChange={e => setTeacher(e.target.value)} placeholder="e.g. Prof. Smith" className="bg-transparent border-none text-base p-0 h-auto" />
+            </div>
+
+            <div className="bg-muted/50 p-4 rounded-lg">
+                <Label className="text-sm font-normal text-muted-foreground">Color</Label>
+                <div className="flex items-center space-x-2 pt-2">
+                    {colors.map(c => (
+                        <button
+                            key={c}
+                            type="button"
+                            className={`h-8 w-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
+                            style={{ backgroundColor: c }}
+                            onClick={() => setColor(c)}
+                        />
+                    ))}
+                </div>
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg">
