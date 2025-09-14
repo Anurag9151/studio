@@ -40,7 +40,7 @@ export default function SettingsForm() {
     // Apply theme/mode to body
     document.body.classList.toggle('dark', settings.mode === 'dark');
     document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple');
-    if(settings.theme && settings.theme !== 'blue') {
+    if(settings.theme) {
       document.body.classList.add(`theme-${settings.theme}`);
     }
   }, [settings]);
@@ -58,7 +58,7 @@ export default function SettingsForm() {
     setTheme(newTheme);
     setSettings(prev => ({ ...prev, theme: newTheme as any }));
     document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple');
-    if (newTheme !== 'blue') {
+    if (newTheme) {
         document.body.classList.add(`theme-${newTheme}`);
     }
     toast({ title: "Theme Updated", description: `App theme set to ${newTheme}.` });

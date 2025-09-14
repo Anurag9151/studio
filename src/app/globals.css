@@ -52,6 +52,15 @@
     --input: 240 5% 25%;
     --ring: 221 83% 63%;
   }
+
+  .theme-green {
+    --primary: 142 76% 36%;
+    --ring: 142 76% 36%;
+  }
+  .theme-purple {
+      --primary: 262 84% 59%;
+      --ring: 262 84% 59%;
+  }
 }
 
 @layer base {

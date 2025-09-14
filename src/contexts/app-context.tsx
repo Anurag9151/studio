@@ -20,9 +20,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [attendanceRecords, setAttendanceRecords] = useLocalStorage<AttendanceRecord[]>('attendance', []);
   const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { 
     targetPercentage: 75,
-    theme: 'blue',
+    theme: 'green',
     mode: 'light',
-    workingDays: 'Mon-Fri',
+    workingDays: 'Mon-Sat',
     startTime: '09:00',
     endTime: '17:00',
     lunchBreak: true,
@@ -32,8 +32,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const applyTheme = () => {
       document.body.classList.remove('dark', 'light', 'theme-blue', 'theme-green', 'theme-purple');
       document.body.classList.add(settings.mode || 'light');
-      // No theme- class for blue, it's the default
-      if (settings.theme && settings.theme !== 'blue') {
+      if (settings.theme) {
         document.body.classList.add(`theme-${settings.theme}`);
       }
     };

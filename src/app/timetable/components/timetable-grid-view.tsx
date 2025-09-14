@@ -3,7 +3,6 @@
 import React from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { getWeekDays, cn } from '@/lib/utils';
-import { Edit } from 'lucide-react';
 import { AddSubjectSheet } from './add-subject-sheet';
 import { useMemo } from 'react';
 import type { Subject } from '@/lib/types';
@@ -14,12 +13,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const weekDays = getWeekDays();
   const today = getDay(new Date());
 
-  const workingDays = useMemo(() => {
-    const dayNames = weekDays.slice(1, 6); // Mon-Fri
+  const workingDayNames = useMemo(() => {
+    let days = [weekDays[1], weekDays[2], weekDays[3], weekDays[4], weekDays[5]];
     if (settings.workingDays === 'Mon-Sat') {
-      dayNames.push(weekDays[6]); // Add Saturday
+      days.push(weekDays[6]);
     }
-    return dayNames;
+    return days;
   }, [settings.workingDays, weekDays]);
 
   const timeSlots = useMemo(() => {
@@ -33,8 +32,8 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   }, [settings.startTime, settings.endTime]);
 
   const subjectsByDayTime = useMemo(() => {
-    const grid: { [key: string]: { [key: string]: Subject | 'lunch' | null } } = {};
-    workingDays.forEach(day => {
+    const grid: { [key: string]: { [key: string]: Subject | null } } = {};
+    workingDayNames.forEach(day => {
       grid[day] = {};
       timeSlots.forEach(slot => {
         grid[day][slot] = null;
@@ -51,69 +50,63 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
             }
         }
     });
-
-    if (settings.lunchBreak) {
-        const lunchSlot = '13:00';
-        if(timeSlots.includes(lunchSlot)) {
-            workingDays.forEach(day => {
-                grid[day][lunchSlot] = 'lunch';
-            });
-        }
-    }
-
     return grid;
-  }, [subjects, workingDays, timeSlots, weekDays, settings.lunchBreak]);
+  }, [subjects, workingDayNames, timeSlots, weekDays]);
+
+  const lunchTimeSlot = '13:00';
+  const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-x-auto">
-        <div className={`grid grid-cols-[auto_repeat(${workingDays.length},_minmax(0,_1fr))] min-w-max`}>
-            <div className="p-2 border-b border-r text-xs font-semibold text-muted-foreground sticky left-0 bg-card"></div>
-            {workingDays.map(day => (
-                <div key={day} className={cn("p-2 text-center border-b text-xs font-semibold", weekDays.indexOf(day) === today ? "bg-primary/10 text-primary" : "text-muted-foreground")}>
-                    {day.substring(0, 3)}
-                </div>
-            ))}
-        
-            {timeSlots.map(slot => (
-                <React.Fragment key={slot}>
-                    <div className="p-2 border-r text-xs text-muted-foreground h-20 flex items-center justify-center sticky left-0 bg-card">
-                        {format(new Date(`1970-01-01T${slot}`), 'h a')}
-                    </div>
-                    {workingDays.map(day => {
-                        const subject = subjectsByDayTime[day]?.[slot];
-                        if (subject === 'lunch') {
-                            return (
-                                <div key={`${day}-${slot}`} className="p-1 border-l">
-                                    <div className="h-full flex items-center justify-center text-muted-foreground/50 text-xs">
-                                        Lunch
-                                    </div>
-                                </div>
-                            )
-                        }
-                        if (subject) {
-                            const subjectInfo = subject as Subject;
-                            return (
-                                <div key={`${day}-${slot}`} className="p-1 border-l">
-                                    <AddSubjectSheet subject={subjectInfo}>
-                                        <button 
-                                            className="w-full h-full rounded-md p-1 text-left group relative text-white"
-                                            style={{ backgroundColor: subjectInfo.color || '#3b82f6' }}
-                                        >
-                                            <p className="font-bold text-xs truncate">{subjectInfo.name}</p>
-                                            <p className="text-xs opacity-80">{subjectInfo.teacher}</p>
-                                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Edit size={12} />
-                                            </div>
-                                        </button>
-                                    </AddSubjectSheet>
-                                </div>
-                            )
-                        }
-                        return <div key={`${day}-${slot}`} className="border-l"></div>
-                    })}
-                </React.Fragment>
-            ))}
-        </div>
+    <div className="bg-card text-card-foreground overflow-x-auto rounded-lg shadow-lg border-2 border-primary/50">
+        <table className="w-full min-w-max border-collapse">
+            <thead>
+                <tr className="bg-primary/80 text-primary-foreground">
+                    <th className="p-2 border border-border text-xs font-semibold uppercase">Time</th>
+                    {timeSlots.map(slot => (
+                        <th key={slot} className="p-2 border border-border text-xs font-semibold">
+                            {format(new Date(`1970-01-01T${slot}`), 'h:mm a')}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody>
+                 {workingDayNames.map((day, dayIndex) => {
+                    const isToday = weekDays.indexOf(day) === today;
+                    return (
+                        <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
+                            <td className="p-2 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
+                             {timeSlots.map((slot, slotIndex) => {
+                                if (settings.lunchBreak && slot === lunchTimeSlot) {
+                                  const lunchChar = lunchLetters[dayIndex] || '';
+                                  return (
+                                     <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle bg-primary/20">
+                                         <span className="font-bold text-primary/80 text-sm">{lunchChar}</span>
+                                     </td>
+                                  )
+                                }
+                                
+                                const subject = subjectsByDayTime[day]?.[slot];
+                                if (subject) {
+                                    return (
+                                        <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle">
+                                            <AddSubjectSheet subject={subject}>
+                                                <button 
+                                                    className="w-full h-full rounded-md p-1.5 text-left group relative bg-card hover:bg-muted"
+                                                >
+                                                    <p className="font-bold text-xs truncate text-foreground">{subject.name}</p>
+                                                    {subject.teacher && <p className="text-xs text-muted-foreground opacity-80">{subject.teacher}</p>}
+                                                </button>
+                                            </AddSubjectSheet>
+                                        </td>
+                                    )
+                                }
+                                return <td key={`${day}-${slot}`} className="border border-border"></td>
+                            })}
+                        </tr>
+                    )
+                 })}
+            </tbody>
+        </table>
     </div>
   );
 }
