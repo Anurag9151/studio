@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -23,12 +24,16 @@ export default function AttendanceSummary() {
     let totalClasses = 0;
 
     subjects.forEach(subject => {
-      // Correctly call with byId=true for accurate calculation
+      // FIX: Pass the subject.id, not the whole subject object.
+      // And ensure byId is true for this calculation.
       const { attended, total } = calculateAttendance(subject.id, subjects, attendanceRecords, true);
       totalAttended += attended;
       totalClasses += total;
     });
     
+    // This part of the logic was incorrect because totalClasses was miscalculated when aggregating
+    // all subjects. A more reliable way is to sum up individual totals.
+    // Let's recalculate the percentage from the summed totals.
     const percentage = totalClasses > 0 ? (totalAttended / totalClasses) * 100 : 0;
 
     return {

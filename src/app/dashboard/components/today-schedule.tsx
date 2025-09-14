@@ -23,9 +23,19 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
   const todaySubjects = useMemo(() => {
     if (!isClient) return [];
-    // Ensure we are comparing numbers with numbers
+    const seen = new Set();
     return subjects
-      .filter(subject => Number(subject.day) === dayOfWeek)
+      .filter(subject => {
+        if (Number(subject.day) !== dayOfWeek) {
+          return false;
+        }
+        if (seen.has(subject.id)) {
+          return false;
+        } else {
+          seen.add(subject.id);
+          return true;
+        }
+      })
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek, isClient]);
 
@@ -121,5 +131,3 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
     </div>
   );
 }
-
-    
