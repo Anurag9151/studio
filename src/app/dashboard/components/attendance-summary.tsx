@@ -26,7 +26,8 @@ export default function AttendanceSummary() {
     const uniqueSubjects = getUniqueSubjects(subjects);
 
     uniqueSubjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, false);
+      // Pass subject name to calculateAttendance, not the whole object
+      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords);
       totalAttended += attended;
       totalClasses += total;
     });

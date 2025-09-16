@@ -1,24 +1,31 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAppContext } from '@/contexts/app-context';
 import { calculateBunkSuggestion, getUniqueSubjects, cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowDown, ArrowUp, ShieldCheck, TrendingDown } from 'lucide-react';
 import type { Subject } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type SortKey = 'percentage_desc' | 'percentage_asc' | 'bunks_desc';
 
 export default function BunkSuggesterView() {
   const { subjects, attendanceRecords, settings } = useAppContext();
   const [sortKey, setSortKey] = useState<SortKey>('percentage_desc');
+  const [isClient, setIsClient] = useState(false);
   const targetPercentage = settings.targetPercentage || 75;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const uniqueSubjects = useMemo(() => getUniqueSubjects(subjects), [subjects]);
 
   const subjectStats = useMemo(() => {
+    if (!isClient) return [];
     return uniqueSubjects.map(subject => {
         const suggestion = calculateBunkSuggestion(subject.name, subjects, attendanceRecords, targetPercentage);
         return {
@@ -36,7 +43,11 @@ export default function BunkSuggesterView() {
                 return b.percentage - a.percentage;
         }
     });
-  }, [uniqueSubjects, subjects, attendanceRecords, targetPercentage, sortKey]);
+  }, [uniqueSubjects, subjects, attendanceRecords, targetPercentage, sortKey, isClient]);
+
+  if (!isClient) {
+    return <Skeleton className="h-64 w-full" />;
+  }
 
   if (subjects.length === 0) {
     return (

@@ -3,15 +3,22 @@
 
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { calculateAttendance, getUniqueSubjects } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const chartData = useMemo(() => {
+    if (!isClient) return [];
     const uniqueSubjects = getUniqueSubjects(subjects);
 
     return uniqueSubjects.map(uniqueSubject => {
@@ -24,9 +31,10 @@ export default function SubjectWiseAttendance() {
       };
     }).sort((a, b) => b.percentage - a.percentage);
 
-  }, [subjects, attendanceRecords]);
+  }, [subjects, attendanceRecords, isClient]);
   
   const chartConfig = useMemo(() => {
+    if (!isClient) return {};
     const config: ChartConfig = {};
     chartData.forEach((data) => {
       config[data.name] = {
@@ -35,8 +43,11 @@ export default function SubjectWiseAttendance() {
       };
     });
     return config;
-  }, [chartData]);
+  }, [chartData, isClient]);
 
+  if (!isClient) {
+    return <Skeleton className="h-64 w-full" />;
+  }
 
   if (subjects.length === 0) {
     return (

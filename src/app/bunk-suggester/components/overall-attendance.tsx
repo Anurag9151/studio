@@ -1,20 +1,29 @@
+
 'use client';
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { calculateAttendance } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OverallAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const overallStats = useMemo(() => {
+    if (!isClient) return { attended: 0, total: 0, percentage: 0, data: [] };
+
     let totalAttended = 0;
     let totalClasses = 0;
     subjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.id, attendanceRecords, subjects);
+      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords);
       totalAttended += attended;
       totalClasses += total;
     });
@@ -28,13 +37,18 @@ export default function OverallAttendance() {
       percentage: parseFloat(percentage.toFixed(1)),
       data: [{ name: 'attended', value: percentage }, { name: 'missed', value: remainingPercentage }]
     };
-  }, [subjects, attendanceRecords]);
+  }, [subjects, attendanceRecords, isClient]);
 
   const color = useMemo(() => {
+    if (!isClient) return "hsl(var(--muted))";
     if (overallStats.percentage >= 85) return "hsl(var(--chart-2))"; // Green
     if (overallStats.percentage >= 75) return "hsl(var(--chart-3))"; // Yellow
     return "hsl(var(--destructive))"; // Red
-  }, [overallStats.percentage]);
+  }, [overallStats.percentage, isClient]);
+
+  if (!isClient) {
+    return <Skeleton className="h-48 w-full" />;
+  }
 
   if (subjects.length === 0) {
     return (

@@ -3,15 +3,22 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { getUniqueSubjects } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SubjectDistribution() {
   const { subjects, attendanceRecords } = useAppContext();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const totalClassesPerSubject = useMemo(() => {
+    if (!isClient) return [];
     const uniqueSubjects = getUniqueSubjects(subjects);
     const data = uniqueSubjects.map(subject => {
         const total = attendanceRecords.filter(r => subject.originalIds.includes(r.subjectId)).length;
@@ -23,9 +30,10 @@ export default function SubjectDistribution() {
     }).filter(d => d.total > 0);
     
     return data;
-  }, [subjects, attendanceRecords]);
+  }, [subjects, attendanceRecords, isClient]);
   
   const chartConfig = useMemo(() => {
+    if (!isClient) return {};
     const config: ChartConfig = {};
     const uniqueSubjects = getUniqueSubjects(subjects);
     uniqueSubjects.forEach((subject) => {
@@ -35,7 +43,11 @@ export default function SubjectDistribution() {
       };
     });
     return config;
-  }, [subjects]);
+  }, [subjects, isClient]);
+
+  if (!isClient) {
+    return <Skeleton className="h-64 w-full" />;
+  }
 
   if (totalClassesPerSubject.length === 0) {
     return (
