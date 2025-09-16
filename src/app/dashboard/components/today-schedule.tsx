@@ -50,7 +50,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
     if (existingRecordIndex > -1) {
       // If the user clicks the same status again, unmark it.
-      if(newRecords[existingRecordIndex].status === status) {
+      if(newRecords[existingRecordringRecordIndex].status === status) {
         newRecords.splice(existingRecordIndex, 1);
          toast({
           title: "Attendance Unmarked",
