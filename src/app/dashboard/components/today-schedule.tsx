@@ -62,7 +62,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
       subjects.find((s) => s.id === subjectId)?.name || 'the class';
 
     if (existingRecordIndex > -1) {
-      if (newRecords[existingRecord-index].status === status) {
+      if (newRecords[existingRecordIndex].status === status) {
         newRecords.splice(existingRecordIndex, 1);
         toast({
           title: 'Attendance Unmarked',
