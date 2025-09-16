@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState } from 'react';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { PartyPopper, Trash2 } from 'lucide-react';
+import TodaySchedule from './components/today-schedule';
 
 export default function DashboardPage() {
   const { holidays, setHolidays } = useAppContext();
@@ -72,6 +74,12 @@ export default function DashboardPage() {
             {isHoliday ? 'Unmark Holiday' : 'Mark as Holiday'}
           </Button>
         </div>
+      )}
+
+      {date && !isHoliday && (
+        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+          <TodaySchedule selectedDate={date} />
+        </Suspense>
       )}
       
       {isHoliday && (
