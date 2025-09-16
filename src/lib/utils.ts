@@ -48,10 +48,8 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
 
     let totalClasses = 0;
     
-    // Find the date of the first ever record for these specific subjects.
-    // This establishes the start of the "semester" for counting purposes.
+    // Find the date of the first ever record for any subject to establish the start of the "semester".
     const firstRecordDate = attendanceRecords
-        .filter(r => subjectIds.includes(r.subjectId))
         .map(r => parse(r.date, 'yyyy-MM-dd', new Date()))
         .sort((a, b) => a.getTime() - b.getTime())[0];
 
@@ -64,13 +62,13 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
         while (isBefore(currentDate, today) || currentDate.toDateString() === today.toDateString()) {
             const dayOfWeek = getDay(currentDate);
             // Count how many of the subjects occurrences happen on this day of the week
-            totalClasses += subjectOccurrences.filter(s => s.day === dayOfWeek).length;
+            totalClasses += subjectOccurrences.filter(s => Number(s.day) === dayOfWeek).length;
             currentDate = addDays(currentDate, 1);
         }
     }
     
-    // Fallback: If for some reason the calculation is less than what we have records for,
-    // use the record count. This covers cases where timetable might have changed.
+    // Fallback: The total number of classes held cannot be less than the number of classes for which
+    // attendance has been explicitly marked.
     const recordedTotal = attended + bunked;
     if (totalClasses < recordedTotal) {
       totalClasses = recordedTotal;
