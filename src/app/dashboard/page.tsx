@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import AttendanceSummary from './components/attendance-summary';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
+import TodaySchedule from './components/today-schedule';
 
 export default function DashboardPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -26,6 +27,12 @@ export default function DashboardPage() {
             />
         </CardContent>
       </Card>
+      
+      {date && (
+        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+          <TodaySchedule selectedDate={date} />
+        </Suspense>
+      )}
 
        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
         <SubjectWiseAttendance />
