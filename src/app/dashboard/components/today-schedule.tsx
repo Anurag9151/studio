@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDay, format } from 'date-fns';
 import { getWeekDays } from '@/lib/utils';
+import { Subject } from '@/lib/types';
 
 export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -44,6 +45,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
       }
     });
 
+    // Sort subjects by start time
     return uniqueSubjectsForDay.sort((a, b) =>
       a.startTime.localeCompare(b.startTime)
     );
