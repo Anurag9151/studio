@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { PartyPopper, Trash2 } from 'lucide-react';
+import TodaySchedule from './components/today-schedule';
 
 export default function DashboardPage() {
   const { holidays, setHolidays } = useAppContext();
@@ -29,6 +30,7 @@ export default function DashboardPage() {
 
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
   const isHoliday = holidays.some(h => h.date === selectedDateStr);
+  const isTodayHoliday = holidays.some(h => h.date === format(new Date(), 'yyyy-MM-dd'));
 
   const handleHolidayToggle = () => {
     if (!date) return;
@@ -87,12 +89,16 @@ export default function DashboardPage() {
         </div>
       )}
       
-      {isHoliday && (
-         <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
-            <p className="font-semibold text-lg">It's a Holiday! 🎉</p>
-            <p>No classes scheduled.</p>
-        </div>
-      )}
+       <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+        {isTodayHoliday ? (
+          <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
+              <p className="font-semibold text-lg">It's a Holiday! 🎉</p>
+              <p>No classes scheduled.</p>
+          </div>
+        ) : (
+          <TodaySchedule />
+        )}
+      </Suspense>
 
        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
         <SubjectWiseAttendance />
