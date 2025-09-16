@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useEffect } from 'react';
-import { Subject, AttendanceRecord, AppSettings } from '@/lib/types';
+import { Subject, AttendanceRecord, AppSettings, Holiday } from '@/lib/types';
 import useLocalStorage from '@/lib/hooks/use-local-storage';
 
 interface AppContextType {
@@ -9,6 +9,8 @@ interface AppContextType {
   setSubjects: (subjects: Subject[] | ((prev: Subject[]) => Subject[])) => void;
   attendanceRecords: AttendanceRecord[];
   setAttendanceRecords: (records: AttendanceRecord[] | ((prev: AttendanceRecord[]) => AttendanceRecord[])) => void;
+  holidays: Holiday[];
+  setHolidays: (holidays: Holiday[] | ((prev: Holiday[]) => Holiday[])) => void;
   settings: AppSettings;
   setSettings: (settings: AppSettings | ((prev: AppSettings) => AppSettings)) => void;
 }
@@ -18,6 +20,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [subjects, setSubjects] = useLocalStorage<Subject[]>('subjects', []);
   const [attendanceRecords, setAttendanceRecords] = useLocalStorage<AttendanceRecord[]>('attendance', []);
+  const [holidays, setHolidays] = useLocalStorage<Holiday[]>('holidays', []);
   const [settings, setSettings] = useLocalStorage<AppSettings>('settings', { 
     targetPercentage: 75,
     theme: 'green',
@@ -47,6 +50,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSubjects,
     attendanceRecords,
     setAttendanceRecords,
+    holidays,
+    setHolidays,
     settings,
     setSettings,
   };

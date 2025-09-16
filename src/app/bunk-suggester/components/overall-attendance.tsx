@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OverallAttendance() {
-  const { subjects, attendanceRecords } = useAppContext();
+  const { subjects, attendanceRecords, holidays } = useAppContext();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function OverallAttendance() {
     let totalAttended = 0;
     let totalClasses = 0;
     subjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords);
+      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
       totalAttended += attended;
       totalClasses += total;
     });
@@ -37,7 +37,7 @@ export default function OverallAttendance() {
       percentage: parseFloat(percentage.toFixed(1)),
       data: [{ name: 'attended', value: percentage }, { name: 'missed', value: remainingPercentage }]
     };
-  }, [subjects, attendanceRecords, isClient]);
+  }, [subjects, attendanceRecords, isClient, holidays]);
 
   const color = useMemo(() => {
     if (!isClient) return "hsl(var(--muted))";

@@ -8,7 +8,7 @@ import { calculateAttendance, getUniqueSubjects } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AttendanceSummary() {
-  const { subjects, attendanceRecords } = useAppContext();
+  const { subjects, attendanceRecords, holidays } = useAppContext();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -26,8 +26,7 @@ export default function AttendanceSummary() {
     const uniqueSubjects = getUniqueSubjects(subjects);
 
     uniqueSubjects.forEach(subject => {
-      // Pass subject name to calculateAttendance, not the whole object
-      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords);
+      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
       totalAttended += attended;
       totalClasses += total;
     });
@@ -39,7 +38,7 @@ export default function AttendanceSummary() {
       total: totalClasses,
       percentage: parseFloat(percentage.toFixed(1)),
     };
-  }, [subjects, attendanceRecords, isClient]);
+  }, [subjects, attendanceRecords, isClient, holidays]);
 
   if (!isClient) {
     return (

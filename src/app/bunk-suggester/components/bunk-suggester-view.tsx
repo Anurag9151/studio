@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 type SortKey = 'percentage_desc' | 'percentage_asc' | 'bunks_desc';
 
 export default function BunkSuggesterView() {
-  const { subjects, attendanceRecords, settings } = useAppContext();
+  const { subjects, attendanceRecords, settings, holidays } = useAppContext();
   const [sortKey, setSortKey] = useState<SortKey>('percentage_desc');
   const [isClient, setIsClient] = useState(false);
   const targetPercentage = settings.targetPercentage || 75;
@@ -27,7 +27,7 @@ export default function BunkSuggesterView() {
   const subjectStats = useMemo(() => {
     if (!isClient) return [];
     return uniqueSubjects.map(subject => {
-        const suggestion = calculateBunkSuggestion(subject.name, subjects, attendanceRecords, targetPercentage);
+        const suggestion = calculateBunkSuggestion(subject.name, subjects, attendanceRecords, targetPercentage, holidays);
         return {
             ...subject,
             ...suggestion
@@ -43,7 +43,7 @@ export default function BunkSuggesterView() {
                 return b.percentage - a.percentage;
         }
     });
-  }, [uniqueSubjects, subjects, attendanceRecords, targetPercentage, sortKey, isClient]);
+  }, [uniqueSubjects, subjects, attendanceRecords, targetPercentage, sortKey, isClient, holidays]);
 
   if (!isClient) {
     return <Skeleton className="h-64 w-full" />;

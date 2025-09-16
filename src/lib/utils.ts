@@ -1,8 +1,8 @@
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { type Subject, type AttendanceRecord } from "@/lib/types";
-import { startOfDay, isBefore, parse, getDay, addDays } from 'date-fns';
+import { type Subject, type AttendanceRecord, type Holiday } from "@/lib/types";
+import { startOfDay, isBefore, parse, getDay, addDays, format } from 'date-fns';
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -33,7 +33,12 @@ export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds
 }
 
 
-export function calculateAttendance(subjectIdentifier: string, allSubjects: Subject[], attendanceRecords: AttendanceRecord[]) {
+export function calculateAttendance(
+    subjectIdentifier: string, 
+    allSubjects: Subject[], 
+    attendanceRecords: AttendanceRecord[],
+    holidays: Holiday[] = []
+) {
     const subjectOccurrences = allSubjects.filter(s => s.name?.trim().toLowerCase() === subjectIdentifier.trim().toLowerCase());
 
     if (subjectOccurrences.length === 0) {
@@ -45,30 +50,32 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
 
     const attended = relevantRecords.filter(r => r.status === 'present').length;
     const bunked = relevantRecords.filter(r => r.status === 'absent').length;
+    
+    const holidayDates = new Set(holidays.map(h => h.date));
 
     let totalClasses = 0;
     
-    // Find the date of the first ever record for any subject to establish the start of the "semester".
     const firstRecordDate = attendanceRecords
         .map(r => parse(r.date, 'yyyy-MM-dd', new Date()))
         .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    // If there are no records, no classes have been held yet.
     if (firstRecordDate) {
         let currentDate = startOfDay(firstRecordDate);
         const today = startOfDay(new Date());
 
-        // Iterate from the first recorded date until today
         while (isBefore(currentDate, today) || currentDate.toDateString() === today.toDateString()) {
             const dayOfWeek = getDay(currentDate);
-            // Count how many of the subjects occurrences happen on this day of the week
-            totalClasses += subjectOccurrences.filter(s => Number(s.day) === dayOfWeek).length;
+            const dateString = format(currentDate, 'yyyy-MM-dd');
+            
+            // If the day is not a holiday, count the classes
+            if (!holidayDates.has(dateString)) {
+                totalClasses += subjectOccurrences.filter(s => Number(s.day) === dayOfWeek).length;
+            }
+            
             currentDate = addDays(currentDate, 1);
         }
     }
     
-    // Fallback: The total number of classes held cannot be less than the number of classes for which
-    // attendance has been explicitly marked.
     const recordedTotal = attended + bunked;
     if (totalClasses < recordedTotal) {
       totalClasses = recordedTotal;
@@ -85,8 +92,14 @@ export function calculateAttendance(subjectIdentifier: string, allSubjects: Subj
 }
 
 
-export function calculateBunkSuggestion(subjectName: string, allSubjects: Subject[], attendanceRecords: AttendanceRecord[], targetPercentage: number) {
-    const { attended, total, bunkedClasses, percentage } = calculateAttendance(subjectName, allSubjects, attendanceRecords);
+export function calculateBunkSuggestion(
+    subjectName: string, 
+    allSubjects: Subject[], 
+    attendanceRecords: AttendanceRecord[], 
+    targetPercentage: number,
+    holidays: Holiday[] = []
+) {
+    const { attended, total, bunkedClasses, percentage } = calculateAttendance(subjectName, allSubjects, attendanceRecords, holidays);
 
     if (total === 0) {
         return {
@@ -101,7 +114,6 @@ export function calculateBunkSuggestion(subjectName: string, allSubjects: Subjec
     const target = targetPercentage / 100;
 
     if (percentage >= target) {
-        // User is safe, calculate how many classes they can bunk
         const bunksAllowed = Math.floor((attended - target * total) / target);
         if (bunksAllowed > 0) {
              return {
@@ -121,7 +133,6 @@ export function calculateBunkSuggestion(subjectName: string, allSubjects: Subjec
             };
         }
     } else {
-        // User is in danger, calculate how many classes they must attend
         const requiredAttend = Math.ceil((target * total - attended) / (1 - target));
         if (requiredAttend > 0) {
             return {

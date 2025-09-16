@@ -129,7 +129,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
         const status = getAttendanceStatus(subject.id);
         return (
           <div
-            key={subject.id}
+            key={`${subject.id}-${subject.startTime}`}
             className="flex items-center justify-between p-4 bg-card rounded-lg shadow-sm"
           >
             <div className="flex items-center gap-3">

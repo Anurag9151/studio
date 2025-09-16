@@ -9,7 +9,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SubjectWiseAttendance() {
-  const { subjects, attendanceRecords } = useAppContext();
+  const { subjects, attendanceRecords, holidays } = useAppContext();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function SubjectWiseAttendance() {
     const uniqueSubjects = getUniqueSubjects(subjects);
     
     return uniqueSubjects.map(subject => {
-        const { percentage } = calculateAttendance(subject.name, subjects, attendanceRecords);
+        const { percentage } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
         return {
             id: subject.id,
             name: subject.name,
@@ -30,7 +30,7 @@ export default function SubjectWiseAttendance() {
         };
     }).sort((a,b) => a.name.localeCompare(b.name));
 
-  }, [subjects, attendanceRecords, isClient]);
+  }, [subjects, attendanceRecords, isClient, holidays]);
 
   if (!isClient) {
      return (
