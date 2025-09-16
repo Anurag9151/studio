@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -13,8 +14,6 @@ import { useToast } from '@/hooks/use-toast';
  * DB: Monday=0, ..., Sunday=6
  */
 const mapDayToDb = (jsDay: number): number => {
-  // Shift so that Monday=0 ... Sunday=6
-  // JS 1 (Monday) → 0, ..., JS 0 (Sunday) → 6
   return jsDay === 0 ? 6 : jsDay - 1;
 };
 
@@ -33,10 +32,11 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
-    // 1. Filter subjects for the selected day
-    const filtered = subjects.filter((subj) => Number(subj.day) === getDay(selectedDate));
-
-    // 2. Deduplicate by a unique key (subject.id + startTime) to handle multiple entries for the same class time.
+    // 1. Filter subjects for the selected day using the correct day field
+    const filtered = subjects.filter((subj) => subj.dayOfWeek === dbDayOfWeek);
+    
+    // 2. Deduplicate by a unique key (subject.id + startTime)
+    // This handles cases where the same class might be added multiple times by mistake
     const seen = new Set<string>();
     const unique: typeof filtered = [];
 
@@ -53,7 +53,7 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     unique.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     return unique;
-  }, [subjects, selectedDate]);
+  }, [subjects, dbDayOfWeek]);
 
   const handleToggleAttendance = (
     subjectId: string,

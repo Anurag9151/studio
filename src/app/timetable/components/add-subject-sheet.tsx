@@ -99,8 +99,8 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
     
-    // day is Sunday=0, Monday=1 etc.
-    // We want Monday=0, ..., Sunday=6
+    // JS `getDay` format: Sunday=0, Monday=1, ..., Saturday=6
+    // Our DB format: Monday=0, ..., Sunday=6
     const dayOfWeek = numericDay === 0 ? 6 : numericDay - 1;
 
 
@@ -117,8 +117,8 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         id: crypto.randomUUID(),
         name,
         teacher,
-        day: numericDay,
-        dayOfWeek,
+        day: numericDay, // Keep JS day for consistency in this sheet
+        dayOfWeek, // Store our DB-friendly day
         startTime,
         endTime,
         color,
