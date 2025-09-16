@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -34,7 +35,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
     const seen = new Set<string>();
     const uniqueSubjectsForDay = subjectsForDay.filter((subject) => {
-      const key = subject.id; // Each class instance has a unique ID
+      const key = subject.id;
       if (seen.has(key)) {
         return false;
       } else {

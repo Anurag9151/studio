@@ -49,11 +49,8 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
   
   useEffect(() => {
-    // This effect now correctly resets the form state whenever the sheet is opened
-    // or the subject being edited changes.
     if (open) {
       if (subject) {
-        // Editing existing subject
         setName(subject.name || '');
         setTeacher(subject.teacher || '');
         setDay(subject.day !== undefined ? String(subject.day) : '');
@@ -61,7 +58,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         setEndTime(subject.endTime || '');
         setColor(subject.color || '#3b82f6');
       } else {
-        // Adding a new subject, reset to defaults
         setName('');
         setTeacher('');
         setDay('');
@@ -93,7 +89,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
       return;
     }
 
-    // Always parse the day to ensure it's a number before saving.
     const numericDay = parseInt(day, 10);
     if (isNaN(numericDay)) {
         toast({
@@ -104,23 +99,23 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
 
+    const dayOfWeek = (numericDay + 6) % 7;
 
     if (subject) {
-      // Edit mode: Find the subject and update it
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color }
+          ? { ...s, name, teacher, day: numericDay, dayOfWeek, startTime, endTime, color }
           : s
       );
       setSubjects(updatedSubjects);
       toast({ title: "Subject Updated", description: `${name} has been updated.` });
     } else {
-      // Add mode: Create a new subject
       const newSubject: Subject = {
         id: crypto.randomUUID(),
         name,
         teacher,
         day: numericDay,
+        dayOfWeek,
         startTime,
         endTime,
         color,
@@ -210,5 +205,3 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
     </Sheet>
   );
 }
-
-    
