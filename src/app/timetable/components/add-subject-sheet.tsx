@@ -98,8 +98,11 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         });
         return;
     }
+    
+    // day is Sunday=0, Monday=1 etc.
+    // We want Monday=0, ..., Sunday=6
+    const dayOfWeek = numericDay === 0 ? 6 : numericDay - 1;
 
-    const dayOfWeek = (numericDay + 6) % 7;
 
     if (subject) {
       const updatedSubjects = subjects.map(s =>

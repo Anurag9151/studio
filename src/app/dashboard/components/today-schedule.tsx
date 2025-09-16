@@ -7,9 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
-// Utility: map JS getDay() to our convention (Mon=1 ... Sun=0)
-const mapDayToDb = (date: Date): number => {
-  return getDay(date);
+/**
+ * Utility function to map JS getDay() -> DB convention
+ * JS getDay(): Sunday=0, Monday=1, ..., Saturday=6
+ * DB: Monday=0, ..., Sunday=6
+ */
+const mapDayToDb = (jsDay: number): number => {
+  // Shift so that Monday=0 ... Sunday=6
+  // JS 1 (Monday) → 0, ..., JS 0 (Sunday) → 6
+  return jsDay === 0 ? 6 : jsDay - 1;
 };
 
 const TodaySchedule: React.FC = () => {
@@ -19,41 +25,46 @@ const TodaySchedule: React.FC = () => {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Mark hydration after mount to avoid mismatch
+    // Next.js hydration handling
     setHydrated(true);
   }, []);
 
   const today = new Date();
+  const dbDayOfWeek = mapDayToDb(getDay(today));
   const todayDateStr = format(today, 'yyyy-MM-dd');
-  const todayDbDay = mapDayToDb(today);
 
-  // Deduplicate + filter + sort subjects
-  const todaySubjects = useMemo(() => {
-    const filtered = subjects.filter((s) => s.day === todayDbDay);
+  const todaysSubjects = useMemo(() => {
+    // 1. Filter subjects for today
+    const filtered = subjects.filter((subj) => Number(subj.day) === dbDayOfWeek);
 
-    // Deduplicate by subject.id + startTime
-    const uniqueMap = new Map<string, typeof filtered[number]>();
-    filtered.forEach((s) => {
-      const key = `${s.id}-${s.startTime}`;
-      if (!uniqueMap.has(key)) {
-        uniqueMap.set(key, s);
+    // 2. Deduplicate by key (subject.id + startTime)
+    const seen = new Set<string>();
+    const unique: typeof filtered = [];
+
+    for (const subj of filtered) {
+      const key = `${subj.id}-${subj.startTime}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(subj);
       }
-    });
+    }
 
-    const uniqueList = Array.from(uniqueMap.values());
+    // 3. Sort by startTime (ascending)
+    unique.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-    // Sort by startTime ascending
-    return uniqueList.sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [subjects, todayDbDay]);
+    return unique;
+  }, [subjects, dbDayOfWeek]);
 
-  // Handler for toggling attendance
-  const handleToggleAttendance = (subjectId: string, newStatus: 'present' | 'absent') => {
+  const handleToggleAttendance = (
+    subjectId: string,
+    newStatus: 'present' | 'absent'
+  ) => {
     const existing = attendanceRecords.find(
       (rec) => rec.subjectId === subjectId && rec.date === todayDateStr
     );
 
     if (!existing) {
-      // Add new record
+      // Add record
       const newRecord = {
         id: crypto.randomUUID(),
         subjectId,
@@ -67,32 +78,36 @@ const TodaySchedule: React.FC = () => {
 
     if (existing.status === newStatus) {
       // Toggle off (remove record)
-      const updated = attendanceRecords.filter((rec) => rec.id !== existing.id);
-      setAttendanceRecords(updated);
+      setAttendanceRecords(
+        attendanceRecords.filter((rec) => rec.id !== existing.id)
+      );
       toast({ description: 'Attendance Unmarked' });
-      return;
+    } else {
+      // Update record
+      const updated = attendanceRecords.map((rec) =>
+        rec.id === existing.id ? { ...rec, status: newStatus } : rec
+      );
+      setAttendanceRecords(updated);
+      toast({ description: 'Attendance Updated' });
     }
-
-    // Update existing
-    const updated = attendanceRecords.map((rec) =>
-      rec.id === existing.id ? { ...rec, status: newStatus } : rec
-    );
-    setAttendanceRecords(updated);
-    toast({ description: 'Attendance Updated' });
   };
 
   if (!hydrated) {
+    // Skeleton loader during hydration
     return (
       <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-4 w-24" />
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between border rounded-lg p-4"
+          >
+            <div className="w-1/2">
+              <Skeleton className="h-5 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
             </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-8 w-16" />
-              <Skeleton className="h-8 w-16" />
+            <div className="flex space-x-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
             </div>
           </div>
         ))}
@@ -100,7 +115,7 @@ const TodaySchedule: React.FC = () => {
     );
   }
 
-  if (todaySubjects.length === 0) {
+  if (todaysSubjects.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
         <p>No subjects scheduled for today.</p>
@@ -111,38 +126,38 @@ const TodaySchedule: React.FC = () => {
   return (
     <div className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">Today's Schedule</h2>
-        {todaySubjects.map((subject) => {
+        {todaysSubjects.map((subject) => {
             const existing = attendanceRecords.find(
-            (rec) => rec.subjectId === subject.id && rec.date === todayDateStr
+                (rec) => rec.subjectId === subject.id && rec.date === todayDateStr
             );
-
-            const isPresent = existing?.status === 'present';
-            const isAbsent = existing?.status === 'absent';
+            const currentStatus = existing?.status;
 
             return (
             <div
                 key={`${subject.id}-${subject.startTime}`}
-                className="flex items-center justify-between p-4 border rounded-lg bg-card shadow-sm"
+                className="flex items-center justify-between border rounded-lg p-4 bg-card"
             >
+                {/* Left side: Subject info */}
                 <div>
-                <p className="font-medium">{subject.name}</p>
+                <h3 className="font-medium">{subject.name}</h3>
                 <p className="text-sm text-muted-foreground">
                     {subject.startTime} - {subject.endTime}
                 </p>
                 </div>
 
-                <div className="flex gap-2">
+                {/* Right side: Action buttons */}
+                <div className="flex space-x-2">
                 <Button
                     size="sm"
-                    variant={isPresent ? 'default' : 'outline'}
-                    onClick={() => handleToggleAttendance(subject.id, 'present')}
+                    variant={currentStatus === "present" ? "default" : "outline"}
+                    onClick={() => handleToggleAttendance(subject.id, "present")}
                 >
                     Attend
                 </Button>
                 <Button
                     size="sm"
-                    variant={isAbsent ? 'destructive' : 'outline'}
-                    onClick={() => handleToggleAttendance(subject.id, 'absent')}
+                    variant={currentStatus === "absent" ? "destructive" : "outline"}
+                    onClick={() => handleToggleAttendance(subject.id, "absent")}
                 >
                     Bunk
                 </Button>
