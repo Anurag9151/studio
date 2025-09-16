@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -5,13 +6,14 @@ import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { format, getDay } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import type { Subject } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getWeekDays } from '@/lib/utils';
 
 export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
+  const weekDays = getWeekDays();
 
   useEffect(() => {
     setIsClient(true);
@@ -23,11 +25,11 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
   const todaySubjects = useMemo(() => {
     if (!isClient) return [];
     
-    // Filter subjects for the selected day
+    // 1. Filter subjects for the selected day
     const subjectsForDay = subjects.filter(subject => Number(subject.day) === dayOfWeek);
 
-    // Ensure we only show unique subjects based on their ID to prevent duplicates
-    const seen = new Set();
+    // 2. Ensure we only show unique subjects based on their ID to prevent duplicates
+    const seen = new Set<string>();
     const uniqueSubjectsForDay = subjectsForDay.filter(subject => {
         if (seen.has(subject.id)) {
             return false;
@@ -37,6 +39,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
         }
     });
     
+    // 3. Sort by start time
     return uniqueSubjectsForDay.sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek, isClient]);
 
@@ -49,7 +52,6 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
     const subjectName = subjects.find(s => s.id === subjectId)?.name || 'the class';
 
     if (existingRecordIndex > -1) {
-      // If the user clicks the same status again, unmark it.
       if(newRecords[existingRecordIndex].status === status) {
         newRecords.splice(existingRecordIndex, 1);
          toast({
@@ -94,7 +96,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
   }
 
   if (todaySubjects.length === 0) {
-    return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">No classes scheduled for the selected day.</div>;
+    return <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">No classes scheduled for {weekDays[dayOfWeek]}.</div>;
   }
 
   return (
