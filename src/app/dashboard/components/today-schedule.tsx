@@ -41,7 +41,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
     
     // 3. Sort by start time
     return uniqueSubjectsForDay.sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [subjects, dayOfWeek, isClient]);
+  }, [subjects, dayOfWeek, isClient, selectedDate]);
 
   const handleMarkAttendance = (subjectId: string, status: 'present' | 'absent') => {
     const existingRecordIndex = attendanceRecords.findIndex(
@@ -52,7 +52,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
     const subjectName = subjects.find(s => s.id === subjectId)?.name || 'the class';
 
     if (existingRecordIndex > -1) {
-      if(newRecords[existingRecord-index].status === status) {
+      if(newRecords[existingRecordIndex].status === status) {
         newRecords.splice(existingRecordIndex, 1);
          toast({
           title: "Attendance Unmarked",
@@ -87,7 +87,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
   if (!isClient) {
      return (
-        <div className="space-y-3">
+        <div className="space-y-3" role="status">
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
