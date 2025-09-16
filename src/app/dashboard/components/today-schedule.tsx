@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -23,21 +22,22 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
   const todaySubjects = useMemo(() => {
     if (!isClient) return [];
+    
+    // Filter subjects for the selected day
+    const subjectsForDay = subjects.filter(subject => Number(subject.day) === dayOfWeek);
+
+    // Ensure we only show unique subjects based on their ID to prevent duplicates
     const seen = new Set();
-    return subjects
-      .filter(subject => {
-        if (Number(subject.day) !== dayOfWeek) {
-          return false;
-        }
-        // Ensure we only show unique subjects based on their ID
+    const uniqueSubjectsForDay = subjectsForDay.filter(subject => {
         if (seen.has(subject.id)) {
-          return false;
+            return false;
         } else {
-          seen.add(subject.id);
-          return true;
+            seen.add(subject.id);
+            return true;
         }
-      })
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+    });
+    
+    return uniqueSubjectsForDay.sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek, isClient]);
 
   const handleMarkAttendance = (subjectId: string, status: 'present' | 'absent') => {
@@ -50,7 +50,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
     if (existingRecordIndex > -1) {
       // If the user clicks the same status again, unmark it.
-      if(newRecords[existingRecordringRecordIndex].status === status) {
+      if(newRecords[existingRecordIndex].status === status) {
         newRecords.splice(existingRecordIndex, 1);
          toast({
           title: "Attendance Unmarked",
