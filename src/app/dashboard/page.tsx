@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import SubjectWiseAttendance from "./components/subject-wise-attendance";
 import { Skeleton } from '@/components/ui/skeleton';
 import AttendanceSummary from './components/attendance-summary';
@@ -18,8 +18,17 @@ export default function DashboardPage() {
   const { holidays, setHolidays } = useAppContext();
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isClient, setIsClient] = useState(false);
 
-  const holidayDates = holidays.map(h => new Date(h.date));
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const holidayDates = holidays.map(h => {
+    const [year, month, day] = h.date.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  });
+
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
   const isHoliday = holidays.some(h => h.date === selectedDateStr);
 
@@ -51,19 +60,23 @@ export default function DashboardPage() {
       
       <Card>
         <CardContent className="p-2 flex justify-center">
-            <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md"
-                modifiers={{ holidays: holidayDates }}
-                modifiersStyles={{ 
-                  holidays: {
-                    border: '2px solid hsl(var(--primary))',
-                    borderRadius: 'var(--radius)',
-                  }
-                }}
-            />
+          {isClient ? (
+              <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  className="rounded-md"
+                  modifiers={{ holidays: holidayDates }}
+                  modifiersStyles={{ 
+                    holidays: {
+                      border: '2px solid hsl(var(--primary))',
+                      borderRadius: 'var(--radius)',
+                    }
+                  }}
+              />
+          ) : (
+            <Skeleton className="h-[280px] w-[280px]" />
+          )}
         </CardContent>
       </Card>
       
