@@ -36,11 +36,12 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     // 1. Filter subjects for the selected day
     const filtered = subjects.filter((subj) => Number(subj.day) === getDay(selectedDate));
 
-    // 2. Deduplicate by key (subject.id + startTime)
+    // 2. Deduplicate by a unique key (subject.id + startTime) to handle multiple entries for the same class time.
     const seen = new Set<string>();
     const unique: typeof filtered = [];
 
     for (const subj of filtered) {
+      // Use subject ID and start time as a unique identifier for a class instance.
       const key = `${subj.id}-${subj.startTime}`;
       if (!seen.has(key)) {
         seen.add(key);
