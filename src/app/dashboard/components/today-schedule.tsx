@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDay, format } from 'date-fns';
-import type { AttendanceRecord } from '@/lib/types';
+import type { AttendanceRecord, Subject } from '@/lib/types';
 
 export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -39,7 +38,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
     // 2. Ensure uniqueness for each specific class instance (id + time).
     // This prevents accidental duplicates but allows a subject to be intentionally scheduled multiple times.
-    const uniqueSubjectsMap = new Map();
+    const uniqueSubjectsMap = new Map<string, Subject>();
     subjectsForDay.forEach((subject) => {
       const uniqueKey = `${subject.id}-${subject.startTime}`;
       if (!uniqueSubjectsMap.has(uniqueKey)) {
