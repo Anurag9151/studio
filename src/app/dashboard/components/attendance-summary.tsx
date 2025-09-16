@@ -4,7 +4,7 @@
 import { useAppContext } from '@/contexts/app-context';
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { calculateAttendance } from '@/lib/utils';
+import { calculateAttendance, getUniqueSubjects } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AttendanceSummary() {
@@ -16,24 +16,21 @@ export default function AttendanceSummary() {
   }, []);
 
   const overallAttendance = useMemo(() => {
-    if (subjects.length === 0) {
+    if (!isClient || subjects.length === 0) {
       return { attended: 0, total: 0, percentage: 0 };
     }
 
     let totalAttended = 0;
     let totalClasses = 0;
 
-    subjects.forEach(subject => {
-      // FIX: Pass the subject.id, not the whole subject object.
-      // And ensure byId is true for this calculation.
-      const { attended, total } = calculateAttendance(subject.id, subjects, attendanceRecords, true);
+    const uniqueSubjects = getUniqueSubjects(subjects);
+
+    uniqueSubjects.forEach(subject => {
+      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, false);
       totalAttended += attended;
       totalClasses += total;
     });
     
-    // This part of the logic was incorrect because totalClasses was miscalculated when aggregating
-    // all subjects. A more reliable way is to sum up individual totals.
-    // Let's recalculate the percentage from the summed totals.
     const percentage = totalClasses > 0 ? (totalAttended / totalClasses) * 100 : 0;
 
     return {
@@ -41,7 +38,7 @@ export default function AttendanceSummary() {
       total: totalClasses,
       percentage: parseFloat(percentage.toFixed(1)),
     };
-  }, [subjects, attendanceRecords]);
+  }, [subjects, attendanceRecords, isClient]);
 
   if (!isClient) {
     return (

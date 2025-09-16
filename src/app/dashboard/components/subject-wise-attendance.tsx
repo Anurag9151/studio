@@ -5,27 +5,54 @@ import { useAppContext } from '@/contexts/app-context';
 import { calculateAttendance, getUniqueSubjects } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const subjectsForDisplay = useMemo(() => {
-    // Get unique subjects by name, and then calculate attendance for each.
+    if (!isClient) return [];
+    
     const uniqueSubjects = getUniqueSubjects(subjects);
     
     return uniqueSubjects.map(subject => {
-        // Calculate attendance by NAME to aggregate all instances
         const { percentage } = calculateAttendance(subject.name, subjects, attendanceRecords);
         return {
-            id: subject.id, // Keep a unique id for React key
+            id: subject.id,
             name: subject.name,
             percentage: percentage,
         };
     }).sort((a,b) => a.name.localeCompare(b.name));
 
-  }, [subjects, attendanceRecords]);
+  }, [subjects, attendanceRecords, isClient]);
 
+  if (!isClient) {
+     return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Subject-wise Attendance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-2 w-24" />
+                    <Skeleton className="h-4 w-10" />
+                </div>
+                 <div className="flex items-center gap-4">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-2 w-24" />
+                    <Skeleton className="h-4 w-10" />
+                </div>
+            </CardContent>
+        </Card>
+     )
+  }
 
   if (subjectsForDisplay.length === 0) {
     return (
