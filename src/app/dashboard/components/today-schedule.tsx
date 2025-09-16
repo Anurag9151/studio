@@ -36,7 +36,8 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
 
     const seen = new Set<string>();
     const uniqueSubjectsForDay = subjectsForDay.filter((subject) => {
-      const key = subject.id;
+      // Create a key based on name and time to identify true duplicates
+      const key = `${subject.name.trim()}-${subject.startTime}`;
       if (seen.has(key)) {
         return false;
       } else {
