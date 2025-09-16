@@ -33,7 +33,7 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
-    // 1. Filter subjects for today
+    // 1. Filter subjects for the selected day
     const filtered = subjects.filter((subj) => Number(subj.day) === getDay(selectedDate));
 
     // 2. Deduplicate by key (subject.id + startTime)
