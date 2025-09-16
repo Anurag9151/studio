@@ -18,7 +18,7 @@ const mapDayToDb = (jsDay: number): number => {
   return jsDay === 0 ? 6 : jsDay - 1;
 };
 
-const TodaySchedule: React.FC = () => {
+const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
 
@@ -29,13 +29,12 @@ const TodaySchedule: React.FC = () => {
     setHydrated(true);
   }, []);
 
-  const today = new Date();
-  const dbDayOfWeek = mapDayToDb(getDay(today));
-  const todayDateStr = format(today, 'yyyy-MM-dd');
+  const dbDayOfWeek = mapDayToDb(getDay(selectedDate));
+  const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
     // 1. Filter subjects for today
-    const filtered = subjects.filter((subj) => Number(subj.day) === dbDayOfWeek);
+    const filtered = subjects.filter((subj) => Number(subj.day) === getDay(selectedDate));
 
     // 2. Deduplicate by key (subject.id + startTime)
     const seen = new Set<string>();
@@ -53,14 +52,14 @@ const TodaySchedule: React.FC = () => {
     unique.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     return unique;
-  }, [subjects, dbDayOfWeek]);
+  }, [subjects, selectedDate]);
 
   const handleToggleAttendance = (
     subjectId: string,
     newStatus: 'present' | 'absent'
   ) => {
     const existing = attendanceRecords.find(
-      (rec) => rec.subjectId === subjectId && rec.date === todayDateStr
+      (rec) => rec.subjectId === subjectId && rec.date === selectedDateStr
     );
 
     if (!existing) {
@@ -68,7 +67,7 @@ const TodaySchedule: React.FC = () => {
       const newRecord = {
         id: crypto.randomUUID(),
         subjectId,
-        date: todayDateStr,
+        date: selectedDateStr,
         status: newStatus,
       };
       setAttendanceRecords([...attendanceRecords, newRecord]);
@@ -125,10 +124,10 @@ const TodaySchedule: React.FC = () => {
 
   return (
     <div className="space-y-4">
-        <h2 className="text-xl font-semibold tracking-tight">Today's Schedule</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Schedule for {format(selectedDate, 'do MMMM')}</h2>
         {todaysSubjects.map((subject) => {
             const existing = attendanceRecords.find(
-                (rec) => rec.subjectId === subject.id && rec.date === todayDateStr
+                (rec) => rec.subjectId === subject.id && rec.date === selectedDateStr
             );
             const currentStatus = existing?.status;
 
