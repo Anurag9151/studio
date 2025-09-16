@@ -29,6 +29,7 @@ export default function TodaySchedule({ selectedDate }: { selectedDate: Date }) 
         if (Number(subject.day) !== dayOfWeek) {
           return false;
         }
+        // Ensure we only show unique subjects based on their ID
         if (seen.has(subject.id)) {
           return false;
         } else {
