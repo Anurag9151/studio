@@ -5,6 +5,7 @@ export type Subject = {
   teacher?: string;
   color?: string;
   day: number; // 0 for Sunday, 1 for Monday, etc.
+  dayOfWeek?: number; // 0 for Monday, 1 for Tuesday etc.
   startTime: string; // "HH:mm"
   endTime: string; // "HH:mm"
 };
