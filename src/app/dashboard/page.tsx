@@ -6,7 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import AttendanceSummary from './components/attendance-summary';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
-import TodaySchedule from './components/today-schedule';
 import { useAppContext } from '@/contexts/app-context';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -73,12 +72,6 @@ export default function DashboardPage() {
             {isHoliday ? 'Unmark Holiday' : 'Mark as Holiday'}
           </Button>
         </div>
-      )}
-
-      {date && !isHoliday && (
-        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
-          <TodaySchedule selectedDate={date} />
-        </Suspense>
       )}
       
       {isHoliday && (
