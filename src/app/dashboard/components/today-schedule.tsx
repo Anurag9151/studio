@@ -16,7 +16,6 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    // Next.js hydration handling
     setHydrated(true);
   }, []);
 
@@ -24,25 +23,9 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
-    // 1. Filter subjects for the selected day
-    const filtered = subjects.filter((subj) => subj.day === dayOfWeek);
-    
-    // 2. Deduplicate by a unique key (subject name + start time)
-    const seen = new Set<string>();
-    const unique: Subject[] = [];
-
-    for (const subj of filtered) {
-      const key = `${subj.name}-${subj.startTime}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        unique.push(subj);
-      }
-    }
-
-    // 3. Sort by startTime (ascending)
-    unique.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-    return unique;
+    return subjects
+      .filter((subj) => subj.day === dayOfWeek)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek]);
 
   const handleToggleAttendance = (
@@ -54,7 +37,6 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     );
 
     if (!existing) {
-      // Add record
       const newRecord = {
         id: crypto.randomUUID(),
         subjectId,
@@ -67,13 +49,11 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     }
 
     if (existing.status === newStatus) {
-      // Toggle off (remove record)
       setAttendanceRecords(
         attendanceRecords.filter((rec) => rec.id !== existing.id)
       );
       toast({ description: 'Attendance Unmarked' });
     } else {
-      // Update record
       const updated = attendanceRecords.map((rec) =>
         rec.id === existing.id ? { ...rec, status: newStatus } : rec
       );
@@ -83,7 +63,6 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   };
 
   if (!hydrated) {
-    // Skeleton loader during hydration
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
@@ -127,7 +106,6 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
                 key={`${subject.id}-${subject.startTime}`}
                 className="flex items-center justify-between border rounded-lg p-4 bg-card"
             >
-                {/* Left side: Subject info */}
                 <div>
                 <h3 className="font-medium">{subject.name}</h3>
                 <p className="text-sm text-muted-foreground">
@@ -135,7 +113,6 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
                 </p>
                 </div>
 
-                {/* Right side: Action buttons */}
                 <div className="flex space-x-2">
                 <Button
                     size="sm"

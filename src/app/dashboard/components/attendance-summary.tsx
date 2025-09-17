@@ -4,7 +4,7 @@
 import { useAppContext } from '@/contexts/app-context';
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { calculateAttendance, getUniqueSubjects } from '@/lib/utils';
+import { calculateAttendance } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AttendanceSummary() {
@@ -23,10 +23,10 @@ export default function AttendanceSummary() {
     let totalAttended = 0;
     let totalClasses = 0;
 
-    const uniqueSubjects = getUniqueSubjects(subjects);
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
 
-    uniqueSubjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
+    uniqueSubjectNames.forEach(name => {
+      const { attended, total } = calculateAttendance(name, subjects, attendanceRecords, holidays);
       totalAttended += attended;
       totalClasses += total;
     });

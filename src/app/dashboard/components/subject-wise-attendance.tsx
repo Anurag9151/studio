@@ -2,7 +2,7 @@
 'use client';
 
 import { useAppContext } from '@/contexts/app-context';
-import { calculateAttendance, getUniqueSubjects } from '@/lib/utils';
+import { calculateAttendance } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useMemo, useState, useEffect } from 'react';
@@ -19,13 +19,13 @@ export default function SubjectWiseAttendance() {
   const subjectsForDisplay = useMemo(() => {
     if (!isClient) return [];
     
-    const uniqueSubjects = getUniqueSubjects(subjects);
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
     
-    return uniqueSubjects.map(subject => {
-        const { percentage } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
+    return uniqueSubjectNames.map(name => {
+        const { percentage } = calculateAttendance(name, subjects, attendanceRecords, holidays);
         return {
-            id: subject.id,
-            name: subject.name,
+            id: name,
+            name: name,
             percentage: percentage,
         };
     }).sort((a,b) => a.name.localeCompare(b.name));

@@ -9,55 +9,32 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getUniqueSubjects(subjects: Subject[]): (Subject & { originalIds: string[] })[] {
-  const uniqueSubjectsMap = new Map<string, Subject & { originalIds:string[] }>();
-
-  subjects.forEach(subject => {
-    if (!subject.name) return;
-    const normalizedName = subject.name.trim().toLowerCase();
-    if (!uniqueSubjectsMap.has(normalizedName)) {
-      uniqueSubjectsMap.set(normalizedName, {
-        ...subject,
-        name: subject.name.trim(), // Use the trimmed version of the original name for display
-        originalIds: [subject.id],
-      });
-    } else {
-      const existing = uniqueSubjectsMap.get(normalizedName)!;
-      existing.originalIds.push(subject.id);
-      // You might want to merge properties here if needed, e.g. choose a color.
-      // For now, we just keep the properties of the first one encountered.
-    }
-  });
-
-  return Array.from(uniqueSubjectsMap.values());
-}
-
-
 export function calculateAttendance(
-    subjectIdentifier: string, 
-    allSubjects: Subject[], 
+    subjectName: string,
+    allSubjects: Subject[],
     attendanceRecords: AttendanceRecord[],
     holidays: Holiday[] = []
 ) {
-    const subjectOccurrences = allSubjects.filter(s => s.name?.trim().toLowerCase() === subjectIdentifier.trim().toLowerCase());
-
+    const subjectOccurrences = allSubjects.filter(s => s.name?.trim().toLowerCase() === subjectName.trim().toLowerCase());
+    
     if (subjectOccurrences.length === 0) {
         return { attended: 0, total: 0, bunkedClasses: 0, percentage: 0 };
     }
 
     const subjectIds = subjectOccurrences.map(s => s.id);
-    const relevantRecords = attendanceRecords.filter(r => subjectIds.includes(r.subjectId));
+    const attendedRecords = attendanceRecords.filter(r => subjectIds.includes(r.subjectId) && r.status === 'present');
+    const bunkedRecords = attendanceRecords.filter(r => subjectIds.includes(r.subjectId) && r.status === 'absent');
 
-    const attended = relevantRecords.filter(r => r.status === 'present').length;
-    const bunked = relevantRecords.filter(r => r.status === 'absent').length;
-    
+    const attended = attendedRecords.length;
+    const bunkedClasses = bunkedRecords.length;
+
     const holidayDates = new Set(holidays.map(h => h.date));
-
+    
     let totalClasses = 0;
     
-    const firstRecordDate = attendanceRecords
-        .map(r => parse(r.date, 'yyyy-MM-dd', new Date()))
-        .sort((a, b) => a.getTime() - b.getTime())[0];
+    // Determine the start date for calculation
+    const allRecordDates = attendanceRecords.map(r => parse(r.date, 'yyyy-MM-dd', new Date()));
+    const firstRecordDate = allRecordDates.length > 0 ? allRecordDates.sort((a, b) => a.getTime() - b.getTime())[0] : new Date();
 
     if (firstRecordDate) {
         let currentDate = startOfDay(firstRecordDate);
@@ -67,7 +44,6 @@ export function calculateAttendance(
             const dayOfWeek = getDay(currentDate);
             const dateString = format(currentDate, 'yyyy-MM-dd');
             
-            // If the day is not a holiday, count the classes
             if (!holidayDates.has(dateString)) {
                 totalClasses += subjectOccurrences.filter(s => Number(s.day) === dayOfWeek).length;
             }
@@ -76,7 +52,7 @@ export function calculateAttendance(
         }
     }
     
-    const recordedTotal = attended + bunked;
+    const recordedTotal = attended + bunkedClasses;
     if (totalClasses < recordedTotal) {
       totalClasses = recordedTotal;
     }
@@ -84,9 +60,9 @@ export function calculateAttendance(
     const percentage = totalClasses > 0 ? (attended / totalClasses) * 100 : 0;
 
     return {
-        attended: attended,
+        attended,
         total: totalClasses,
-        bunkedClasses: bunked,
+        bunkedClasses,
         percentage: parseFloat(percentage.toFixed(1)),
     };
 }

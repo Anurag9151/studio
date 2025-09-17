@@ -22,8 +22,10 @@ export default function OverallAttendance() {
 
     let totalAttended = 0;
     let totalClasses = 0;
-    subjects.forEach(subject => {
-      const { attended, total } = calculateAttendance(subject.name, subjects, attendanceRecords, holidays);
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
+    
+    uniqueSubjectNames.forEach(name => {
+      const { attended, total } = calculateAttendance(name, subjects, attendanceRecords, holidays);
       totalAttended += attended;
       totalClasses += total;
     });

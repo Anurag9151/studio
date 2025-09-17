@@ -6,7 +6,6 @@ import { useAppContext } from "@/contexts/app-context";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
-import { getUniqueSubjects } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SubjectDistribution() {
@@ -19,13 +18,15 @@ export default function SubjectDistribution() {
 
   const totalClassesPerSubject = useMemo(() => {
     if (!isClient) return [];
-    const uniqueSubjects = getUniqueSubjects(subjects);
-    const data = uniqueSubjects.map(subject => {
-        const total = attendanceRecords.filter(r => subject.originalIds.includes(r.subjectId)).length;
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
+    const data = uniqueSubjectNames.map(name => {
+        const subjectInfo = subjects.find(s => s.name === name);
+        const subjectIds = subjects.filter(s => s.name === name).map(s => s.id);
+        const total = attendanceRecords.filter(r => subjectIds.includes(r.subjectId)).length;
         return {
-            name: subject.name,
+            name: name,
             total: total,
-            fill: subject.color || '#ccc'
+            fill: subjectInfo?.color || '#ccc'
         }
     }).filter(d => d.total > 0);
     
@@ -35,11 +36,12 @@ export default function SubjectDistribution() {
   const chartConfig = useMemo(() => {
     if (!isClient) return {};
     const config: ChartConfig = {};
-    const uniqueSubjects = getUniqueSubjects(subjects);
-    uniqueSubjects.forEach((subject) => {
-      config[subject.name] = {
-        label: subject.name,
-        color: subject.color,
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
+    uniqueSubjectNames.forEach((name) => {
+      const subjectInfo = subjects.find(s => s.name === name);
+      config[name] = {
+        label: name,
+        color: subjectInfo?.color,
       };
     });
     return config;

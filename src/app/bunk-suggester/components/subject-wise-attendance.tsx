@@ -4,7 +4,7 @@
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
 import { useMemo, useState, useEffect } from "react";
-import { calculateAttendance, getUniqueSubjects } from "@/lib/utils";
+import { calculateAttendance } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,15 +19,15 @@ export default function SubjectWiseAttendance() {
 
   const chartData = useMemo(() => {
     if (!isClient) return [];
-    const uniqueSubjects = getUniqueSubjects(subjects);
+    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
 
-    return uniqueSubjects.map(uniqueSubject => {
-      const { percentage } = calculateAttendance(uniqueSubject.name, subjects, attendanceRecords);
-      
+    return uniqueSubjectNames.map(name => {
+      const { percentage } = calculateAttendance(name, subjects, attendanceRecords);
+      const subjectInfo = subjects.find(s => s.name === name);
       return {
-        name: uniqueSubject.name,
+        name: name,
         percentage: parseFloat(percentage.toFixed(1)),
-        fill: uniqueSubject.color || `hsl(var(--chart-1))`
+        fill: subjectInfo?.color || `hsl(var(--chart-1))`
       };
     }).sort((a, b) => b.percentage - a.percentage);
 
