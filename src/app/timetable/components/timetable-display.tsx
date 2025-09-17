@@ -42,7 +42,7 @@ export default function TimetableDisplay() {
 
   const DayView = () => {
     if (!isClient) {
-      return <Skeleton className="h-[200px] w-full" />;
+      return <Skeleton className="h-[300px] w-full" />;
     }
 
     return (
