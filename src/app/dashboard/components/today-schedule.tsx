@@ -23,7 +23,8 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
-    return subjects
+    const uniqueSubjects = Array.from(new Map(subjects.map(s => [s.id, s])).values());
+    return uniqueSubjects
       .filter((subj) => subj.day === dayOfWeek)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [subjects, dayOfWeek]);
@@ -103,7 +104,7 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
 
             return (
             <div
-                key={`${subject.id}-${subject.startTime}`}
+                key={subject.id}
                 className="flex items-center justify-between border rounded-lg p-4 bg-card"
             >
                 <div>

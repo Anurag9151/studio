@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -43,7 +44,9 @@ export function TimetableListView({ subjects, handleDelete }: { subjects: Subjec
         const grouped: { [key: number]: Subject[] } = {};
         workingDayIndexes.forEach(i => grouped[i] = []);
         
-        subjects.forEach(subject => {
+        const uniqueSubjects = Array.from(new Map(subjects.map(s => [s.id, s])).values());
+        
+        uniqueSubjects.forEach(subject => {
             if (grouped[subject.day] !== undefined) {
                 grouped[subject.day].push(subject);
             }
