@@ -57,6 +57,17 @@ export default function DashboardPage() {
       <Suspense fallback={<Skeleton className="h-24 w-full rounded-lg" />}>
         <AttendanceSummary />
       </Suspense>
+
+      <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+        {date && (isHoliday ? (
+          <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
+              <p className="font-semibold text-lg">It's a Holiday! 🎉</p>
+              <p>No classes scheduled.</p>
+          </div>
+        ) : (
+          <TodaySchedule selectedDate={date} />
+        ))}
+      </Suspense>
       
       <Card>
         <CardContent className="p-2 flex justify-center">
@@ -88,17 +99,6 @@ export default function DashboardPage() {
           </Button>
         </div>
       )}
-      
-       <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
-        {date && (isHoliday ? (
-          <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
-              <p className="font-semibold text-lg">It's a Holiday! 🎉</p>
-              <p>No classes scheduled.</p>
-          </div>
-        ) : (
-          <TodaySchedule selectedDate={date} />
-        ))}
-      </Suspense>
 
        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
         <SubjectWiseAttendance />
@@ -106,3 +106,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
