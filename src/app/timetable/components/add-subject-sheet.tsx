@@ -99,15 +99,10 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
     
-    // JS `getDay` format: Sunday=0, Monday=1, ..., Saturday=6
-    // Our DB format: Monday=0, ..., Sunday=6
-    const dayOfWeek = numericDay === 0 ? 6 : numericDay - 1;
-
-
     if (subject) {
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, teacher, day: numericDay, dayOfWeek, startTime, endTime, color }
+          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color }
           : s
       );
       setSubjects(updatedSubjects);
@@ -117,8 +112,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         id: crypto.randomUUID(),
         name,
         teacher,
-        day: numericDay, // Keep JS day for consistency in this sheet
-        dayOfWeek, // Store our DB-friendly day
+        day: numericDay,
         startTime,
         endTime,
         color,

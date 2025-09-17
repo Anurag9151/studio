@@ -7,15 +7,7 @@ import { useAppContext } from '@/contexts/app-context';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-
-/**
- * Utility function to map JS getDay() -> DB convention
- * JS getDay(): Sunday=0, Monday=1, ..., Saturday=6
- * DB: Monday=0, ..., Sunday=6
- */
-const mapDayToDb = (jsDay: number): number => {
-  return jsDay === 0 ? 6 : jsDay - 1;
-};
+import type { Subject } from '@/lib/types';
 
 const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   const { subjects, attendanceRecords, setAttendanceRecords } = useAppContext();
@@ -28,21 +20,19 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     setHydrated(true);
   }, []);
 
-  const dbDayOfWeek = mapDayToDb(getDay(selectedDate));
+  const dayOfWeek = getDay(selectedDate);
   const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
 
   const todaysSubjects = useMemo(() => {
-    // 1. Filter subjects for the selected day using the correct day field
-    const filtered = subjects.filter((subj) => subj.dayOfWeek === dbDayOfWeek);
+    // 1. Filter subjects for the selected day
+    const filtered = subjects.filter((subj) => subj.day === dayOfWeek);
     
-    // 2. Deduplicate by a unique key (subject.id + startTime)
-    // This handles cases where the same class might be added multiple times by mistake
+    // 2. Deduplicate by a unique key (subject name + start time)
     const seen = new Set<string>();
-    const unique: typeof filtered = [];
+    const unique: Subject[] = [];
 
     for (const subj of filtered) {
-      // Use subject ID and start time as a unique identifier for a class instance.
-      const key = `${subj.id}-${subj.startTime}`;
+      const key = `${subj.name}-${subj.startTime}`;
       if (!seen.has(key)) {
         seen.add(key);
         unique.push(subj);
@@ -53,7 +43,7 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
     unique.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     return unique;
-  }, [subjects, dbDayOfWeek]);
+  }, [subjects, dayOfWeek]);
 
   const handleToggleAttendance = (
     subjectId: string,
@@ -118,7 +108,7 @@ const TodaySchedule: React.FC<{ selectedDate: Date }> = ({ selectedDate }) => {
   if (todaysSubjects.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
-        <p>No subjects scheduled for today.</p>
+        <p>No subjects scheduled for {format(selectedDate, 'eeee')}.</p>
       </div>
     );
   }
