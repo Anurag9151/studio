@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function SubjectDistribution() {
   const { subjects, attendanceRecords } = useAppContext();
   const [isClient, setIsClient] = useState(false);
+  const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
 
   useEffect(() => {
     setIsClient(true);
@@ -19,14 +20,14 @@ export default function SubjectDistribution() {
   const totalClassesPerSubject = useMemo(() => {
     if (!isClient) return [];
     const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
-    const data = uniqueSubjectNames.map(name => {
+    const data = uniqueSubjectNames.map((name, index) => {
         const subjectInfo = subjects.find(s => s.name === name);
         const subjectIds = subjects.filter(s => s.name === name).map(s => s.id);
         const total = attendanceRecords.filter(r => subjectIds.includes(r.subjectId)).length;
         return {
             name: name,
             total: total,
-            fill: subjectInfo?.color || '#ccc'
+            fill: subjectInfo?.color || colors[index % colors.length]
         }
     }).filter(d => d.total > 0);
     
@@ -36,16 +37,14 @@ export default function SubjectDistribution() {
   const chartConfig = useMemo(() => {
     if (!isClient) return {};
     const config: ChartConfig = {};
-    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
-    uniqueSubjectNames.forEach((name) => {
-      const subjectInfo = subjects.find(s => s.name === name);
-      config[name] = {
-        label: name,
-        color: subjectInfo?.color,
+    totalClassesPerSubject.forEach((data) => {
+      config[data.name] = {
+        label: data.name,
+        color: data.fill,
       };
     });
     return config;
-  }, [subjects, isClient]);
+  }, [totalClassesPerSubject, isClient]);
 
   if (!isClient) {
     return <Skeleton className="h-64 w-full" />;

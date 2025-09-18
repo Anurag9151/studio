@@ -56,17 +56,21 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         setDay(subject.day !== undefined ? String(subject.day) : '');
         setStartTime(subject.startTime || '');
         setEndTime(subject.endTime || '');
-        setColor(subject.color || '#3b82f6');
+        setColor(subject.color || colors[0]);
       } else {
+        // Reset form for new subject
+        const existingNames = new Set(subjects.map(s => s.name));
+        const nextColorIndex = subjects.filter(s => existingNames.has(s.name)).length % colors.length;
+        
         setName('');
         setTeacher('');
         setDay('');
         setStartTime('');
         setEndTime('');
-        setColor('#3b82f6');
+        setColor(colors[nextColorIndex] || colors[0]);
       }
     }
-  }, [open, subject]);
+  }, [open, subject, subjects]);
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,10 +103,25 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
     
+    // Auto-assign color if one isn't selected or if the name is new
+    let finalColor = color;
+    const isNewSubjectName = !subjects.some(s => s.name.toLowerCase() === name.trim().toLowerCase());
+    if (isNewSubjectName) {
+        const usedColors = new Set(subjects.map(s => s.color));
+        const availableColors = colors.filter(c => !usedColors.has(c));
+        finalColor = availableColors.length > 0 ? availableColors[0] : colors[subjects.length % colors.length];
+    } else {
+        const existingSubject = subjects.find(s => s.name.toLowerCase() === name.trim().toLowerCase());
+        if (existingSubject) {
+            finalColor = existingSubject.color || color;
+        }
+    }
+
+
     if (subject) {
       const updatedSubjects = subjects.map(s =>
         s.id === subject.id
-          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color }
+          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color: finalColor }
           : s
       );
       setSubjects(updatedSubjects);
@@ -115,7 +134,7 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         day: numericDay,
         startTime,
         endTime,
-        color,
+        color: finalColor,
       };
       setSubjects([...subjects, newSubject]);
       toast({ title: "Subject Added", description: `${name} has been added to your timetable.` });

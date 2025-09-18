@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
   const [isClient, setIsClient] = useState(false);
+  const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
 
   useEffect(() => {
     setIsClient(true);
@@ -21,13 +22,13 @@ export default function SubjectWiseAttendance() {
     if (!isClient) return [];
     const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
 
-    return uniqueSubjectNames.map(name => {
+    return uniqueSubjectNames.map((name, index) => {
       const { percentage } = calculateAttendance(name, subjects, attendanceRecords);
       const subjectInfo = subjects.find(s => s.name === name);
       return {
         name: name,
         percentage: parseFloat(percentage.toFixed(1)),
-        fill: subjectInfo?.color || `hsl(var(--chart-1))`
+        fill: subjectInfo?.color || colors[index % colors.length]
       };
     }).sort((a, b) => b.percentage - a.percentage);
 
