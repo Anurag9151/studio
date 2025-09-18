@@ -20,15 +20,21 @@ export default function SubjectWiseAttendance() {
 
   const chartData = useMemo(() => {
     if (!isClient) return [];
+    
     const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
+    const subjectColorMap = new Map<string, string>();
+    subjects.forEach(s => {
+      if (!subjectColorMap.has(s.name)) {
+        subjectColorMap.set(s.name, s.color || colors[subjectColorMap.size % colors.length]);
+      }
+    });
 
     return uniqueSubjectNames.map((name, index) => {
       const { percentage } = calculateAttendance(name, subjects, attendanceRecords);
-      const subjectInfo = subjects.find(s => s.name === name);
       return {
         name: name,
         percentage: parseFloat(percentage.toFixed(1)),
-        fill: subjectInfo?.color || colors[index % colors.length]
+        fill: subjectColorMap.get(name) || colors[index % colors.length]
       };
     }).sort((a, b) => b.percentage - a.percentage);
 

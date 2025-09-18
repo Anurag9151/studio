@@ -19,15 +19,22 @@ export default function SubjectDistribution() {
 
   const totalClassesPerSubject = useMemo(() => {
     if (!isClient) return [];
-    const uniqueSubjectNames = [...new Set(subjects.map(s => s.name))];
-    const data = uniqueSubjectNames.map((name, index) => {
-        const subjectInfo = subjects.find(s => s.name === name);
+    
+    const subjectNames = [...new Set(subjects.map(s => s.name))];
+    const subjectColorMap = new Map<string, string>();
+    subjects.forEach(s => {
+      if (!subjectColorMap.has(s.name)) {
+        subjectColorMap.set(s.name, s.color || colors[subjectColorMap.size % colors.length]);
+      }
+    });
+
+    const data = subjectNames.map((name, index) => {
         const subjectIds = subjects.filter(s => s.name === name).map(s => s.id);
         const total = attendanceRecords.filter(r => subjectIds.includes(r.subjectId)).length;
         return {
             name: name,
             total: total,
-            fill: subjectInfo?.color || colors[index % colors.length]
+            fill: subjectColorMap.get(name) || colors[index % colors.length]
         }
     }).filter(d => d.total > 0);
     
