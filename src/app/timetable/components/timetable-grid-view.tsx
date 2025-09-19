@@ -93,8 +93,8 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                                 <button 
                                                     className="w-full h-full p-1 text-left group relative bg-primary/20"
                                                 >
-                                                    <p className="font-bold text-[10px] leading-tight truncate text-foreground">{subject.name}</p>
-                                                    {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 truncate">{subject.teacher}</p>}
+                                                    <p className="font-bold text-[10px] leading-tight break-words text-foreground">{subject.name}</p>
+                                                    {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 break-words">{subject.teacher}</p>}
                                                 </button>
                                             </AddSubjectSheet>
                                         </td>
