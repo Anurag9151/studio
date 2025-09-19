@@ -16,9 +16,21 @@ import {
 } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 
 export default function SettingsForm() {
-  const { settings, setSettings } = useAppContext();
+  const { settings, setSettings, setSubjects, setAttendanceRecords, setHolidays } = useAppContext();
   const { toast } = useToast();
   
   // Local state for form fields
@@ -122,6 +134,19 @@ export default function SettingsForm() {
     setReminderTime(e.target.value);
     setSettings(prev => ({ ...prev, reminderTime: e.target.value }));
   };
+  
+  const handleResetApp = () => {
+    setSubjects([]);
+    setAttendanceRecords([]);
+    setHolidays([]);
+    // Optionally reset settings to default, or keep them.
+    // For now, let's just clear the data.
+    toast({
+      title: "App Reset",
+      description: "All your data has been cleared.",
+      variant: "destructive"
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -211,6 +236,32 @@ export default function SettingsForm() {
                         onCheckedChange={handleLunchBreakToggle}
                     />
                 </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader><CardTitle className="text-xl text-destructive">Danger Zone</CardTitle></CardHeader>
+            <CardContent>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full">
+                            <Trash2 className="mr-2" /> Reset App
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete all your subjects, attendance records, and holidays. Your settings will be kept.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleResetApp} className="bg-destructive hover:bg-destructive/90">Reset</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <p className="text-xs text-muted-foreground mt-2">Use this if you are facing issues or want to start fresh.</p>
             </CardContent>
         </Card>
     </div>
