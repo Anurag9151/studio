@@ -27,10 +27,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, FileDown } from "lucide-react";
+import { exportToPDF } from "@/lib/pdf-export";
+
 
 export default function SettingsForm() {
-  const { settings, setSettings, setSubjects, setAttendanceRecords, setHolidays } = useAppContext();
+  const { settings, setSettings, subjects, setSubjects, attendanceRecords, setAttendanceRecords, holidays, setHolidays } = useAppContext();
   const { toast } = useToast();
   
   // Local state for form fields
@@ -148,6 +150,14 @@ export default function SettingsForm() {
     });
   };
 
+  const handleExport = () => {
+    exportToPDF(subjects, attendanceRecords, settings, holidays);
+    toast({
+        title: "Report Generated",
+        description: "Your PDF report has been downloaded."
+    });
+  }
+
   return (
     <div className="space-y-6">
         <Card>
@@ -241,7 +251,10 @@ export default function SettingsForm() {
 
         <Card>
             <CardHeader><CardTitle className="text-lg text-destructive">Danger Zone</CardTitle></CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
+                 <Button variant="outline" className="w-full" onClick={handleExport}>
+                    <FileDown className="mr-2" /> Export Report as PDF
+                </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full">
@@ -261,7 +274,7 @@ export default function SettingsForm() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <p className="text-xs text-muted-foreground mt-2">Use this if you are facing issues or want to start fresh.</p>
+                <p className="text-xs text-muted-foreground pt-2">Use these actions to export your data or start fresh.</p>
             </CardContent>
         </Card>
     </div>
