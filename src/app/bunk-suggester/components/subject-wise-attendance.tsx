@@ -13,6 +13,14 @@ export default function SubjectWiseAttendance() {
   const { subjects, attendanceRecords } = useAppContext();
   const [isClient, setIsClient] = useState(false);
 
+  const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+  ];
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -24,11 +32,9 @@ export default function SubjectWiseAttendance() {
     
     return uniqueSubjectNames.map((name, index) => {
       const { percentage } = calculateAttendance(name, subjects, attendanceRecords);
-      let color = 'hsl(var(--primary))';
-      const existingSubject = subjects.find(s => s.name === name);
-      if (existingSubject && existingSubject.color) {
-          color = existingSubject.color;
-      }
+      const subjectGroup = subjects.filter(s => s.name === name);
+      const color = subjectGroup.length > 0 ? (subjectGroup[0].color || chartColors[index % chartColors.length]) : chartColors[index % chartColors.length];
+
       return {
         name: name,
         percentage: parseFloat(percentage.toFixed(1)),

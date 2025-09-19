@@ -47,6 +47,13 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
   const [endTime, setEndTime] = useState('');
   
   const weekDays = getWeekDays();
+  const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+  ];
   
   useEffect(() => {
     if (open) {
@@ -98,20 +105,42 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
         return;
     }
     
-    // All subjects will use the same color
-    const finalColor = 'hsl(var(--primary))';
+    // Check if a subject with this name already exists
+    const existingSubject = subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
+    let finalColor = existingSubject?.color;
+
+    if (!finalColor) {
+      const uniqueSubjectNames = new Set(subjects.map(s => s.name));
+      if (!existingSubject) {
+          uniqueSubjectNames.add(name);
+      }
+      const uniqueNamesCount = Array.from(uniqueSubjectNames).length;
+      finalColor = chartColors[(uniqueNamesCount - 1) % chartColors.length];
+    }
 
 
     if (subject) {
-      const updatedSubjects = subjects.map(s =>
-        s.id === subject.id
-          ? { ...s, name, teacher, day: numericDay, startTime, endTime, color: finalColor }
-          : s
-      );
+      // If we are editing, we need to decide if we update colors for all subjects with the same name.
+      // If the name has changed, all subjects with the old name should retain their color, and this one gets a new one.
+      const oldName = subject.name;
+      const newName = name;
+      const updatedSubjects = subjects.map(s => {
+        // Update the subject being edited
+        if (s.id === subject.id) {
+          return { ...s, name: newName, teacher, day: numericDay, startTime, endTime, color: finalColor };
+        }
+        // If other subjects share the new name, update their color too
+        if (s.name.toLowerCase() === newName.toLowerCase()) {
+            return { ...s, color: finalColor };
+        }
+        return s;
+      });
       setSubjects(updatedSubjects);
       toast({ title: "Subject Updated", description: `${name} has been updated.` });
+
     } else {
-      const newSubject: Subject = {
+       // On adding a new subject, if other subjects with the same name exist, use their color.
+       const newSubject: Subject = {
         id: crypto.randomUUID(),
         name,
         teacher,
@@ -120,7 +149,14 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
         endTime,
         color: finalColor,
       };
-      setSubjects([...subjects, newSubject]);
+
+      const updatedSubjects = subjects.map(s => 
+          s.name.toLowerCase() === name.toLowerCase() 
+          ? { ...s, color: finalColor } 
+          : s
+      );
+
+      setSubjects([...updatedSubjects, newSubject]);
       toast({ title: "Subject Added", description: `${name} has been added to your timetable.` });
     }
 
