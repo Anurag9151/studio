@@ -30,9 +30,11 @@ import type { Subject } from '@/lib/types';
 type AddSubjectSheetProps = {
   subject?: Subject;
   children?: React.ReactNode;
+  day?: number;
+  startTime?: string;
 };
 
-export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
+export function AddSubjectSheet({ subject, children, day: preselectedDay, startTime: preselectedStartTime }: AddSubjectSheetProps) {
   const { subjects, setSubjects } = useAppContext();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
@@ -58,12 +60,12 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         // Reset form for new subject
         setName('');
         setTeacher('');
-        setDay('');
-        setStartTime('');
-        setEndTime('');
+        setDay(preselectedDay !== undefined ? String(preselectedDay) : '');
+        setStartTime(preselectedStartTime || '');
+        setEndTime(preselectedStartTime ? `${parseInt(preselectedStartTime.split(':')[0]) + 1}:00`.padStart(5, '0') : '');
       }
     }
-  }, [open, subject, subjects]);
+  }, [open, subject, subjects, preselectedDay, preselectedStartTime]);
 
 
   const handleSubmit = (e: React.FormEvent) => {

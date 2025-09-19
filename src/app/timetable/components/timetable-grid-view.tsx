@@ -100,7 +100,18 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         </td>
                                     )
                                 }
-                                return <td key={`${day}-${slot}`} className="border border-border h-12"></td>
+                                return (
+                                    <td key={`${day}-${slot}`} className="border border-border h-12">
+                                        <AddSubjectSheet
+                                            day={weekDays.indexOf(day)}
+                                            startTime={slot}
+                                        >
+                                            <button className="w-full h-full text-primary/30 hover:bg-primary/5 hover:text-primary/60 transition-colors flex items-center justify-center">
+                                                +
+                                            </button>
+                                        </AddSubjectSheet>
+                                    </td>
+                                )
                             })}
                         </tr>
                     )
