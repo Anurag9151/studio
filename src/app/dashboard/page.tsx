@@ -15,7 +15,7 @@ import { PartyPopper, Trash2 } from 'lucide-react';
 import TodaySchedule from './components/today-schedule';
 
 export default function DashboardPage() {
-  const { holidays, setHolidays } = useAppContext();
+  const { holidays, setHolidays, attendanceRecords } = useAppContext();
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isClient, setIsClient] = useState(false);
@@ -28,6 +28,12 @@ export default function DashboardPage() {
     const [year, month, day] = h.date.split('-').map(Number);
     return new Date(year, month - 1, day);
   });
+
+  const attendedDates = attendanceRecords.map(r => {
+    const [year, month, day] = r.date.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  });
+
 
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
   const isHoliday = holidays.some(h => h.date === selectedDateStr);
@@ -66,11 +72,17 @@ export default function DashboardPage() {
                   selected={date}
                   onSelect={setDate}
                   className="rounded-md"
-                  modifiers={{ holidays: holidayDates }}
+                  modifiers={{ holidays: holidayDates, attended: attendedDates }}
                   modifiersStyles={{ 
                     holidays: {
                       border: '2px solid hsl(var(--primary))',
                       borderRadius: 'var(--radius)',
+                    },
+                    attended: {
+                        textDecoration: 'underline',
+                        textDecorationColor: 'hsl(var(--primary))',
+                        textDecorationThickness: '2px',
+                        textUnderlineOffset: '3px'
                     }
                   }}
               />
