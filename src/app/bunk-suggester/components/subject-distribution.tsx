@@ -1,59 +1,51 @@
 
 'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useAppContext } from "@/contexts/app-context";
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function SubjectDistribution() {
   const { subjects, attendanceRecords } = useAppContext();
   const [isClient, setIsClient] = useState(false);
-  const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
+  const chartColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    'hsl(var(--primary))',
+  ];
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const totalClassesPerSubject = useMemo(() => {
-    if (!isClient) return [];
+  const { data: totalClassesPerSubject, total: grandTotal } = useMemo(() => {
+    if (!isClient) return { data: [], total: 0 };
     
     const subjectNames = [...new Set(subjects.map(s => s.name))];
-    const subjectColorMap = new Map<string, string>();
+    let grandTotal = 0;
     
     const data = subjectNames.map((name, index) => {
         const subjectIds = subjects.filter(s => s.name === name).map(s => s.id);
         const total = attendanceRecords.filter(r => subjectIds.includes(r.subjectId)).length;
+        grandTotal += total;
         
-        let color = 'hsl(var(--primary))';
-        const existingSubject = subjects.find(s => s.name === name);
-        if (existingSubject && existingSubject.color) {
-            color = existingSubject.color;
-        }
-
         return {
             name: name,
             total: total,
-            fill: color
+            fill: chartColors[index % chartColors.length]
         }
-    }).filter(d => d.total > 0);
+    }).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
     
-    return data;
+    return { data, total: grandTotal };
   }, [subjects, attendanceRecords, isClient]);
   
-  const chartConfig = useMemo(() => {
-    if (!isClient) return {};
-    const config: ChartConfig = {};
-    totalClassesPerSubject.forEach((data) => {
-      config[data.name] = {
-        label: data.name,
-        color: data.fill,
-      };
-    });
-    return config;
-  }, [totalClassesPerSubject, isClient]);
 
   if (!isClient) {
     return <Skeleton className="h-64 w-full" />;
@@ -80,38 +72,43 @@ export default function SubjectDistribution() {
             <CardTitle>Subject Distribution</CardTitle>
         </CardHeader>
         <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={totalClassesPerSubject}
-                            dataKey="total"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            labelLine={false}
-                            label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-                                const RADIAN = Math.PI / 180;
-                                const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
-                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                                return (
-                                <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
-                                    {`${(percent * 100).toFixed(0)}%`}
-                                </text>
-                                );
-                            }}
-                        >
-                            {totalClassesPerSubject.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                        </Pie>
-                        <Legend iconType="circle" />
-                    </PieChart>
-                </ResponsiveContainer>
-            </ChartContainer>
+            <div className="grid grid-cols-2 gap-6">
+                <div className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={totalClassesPerSubject}
+                                dataKey="total"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                innerRadius={50}
+                            >
+                                {totalClassesPerSubject.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} stroke={entry.fill} />
+                                ))}
+                            </Pie>
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+                 <div className="flex flex-col justify-center space-y-2 text-sm">
+                    <div className="font-medium text-muted-foreground">Total Classes: {grandTotal}</div>
+                    {totalClassesPerSubject.map(entry => (
+                        <div key={entry.name} className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.fill }}/>
+                            <div className="flex-1 truncate">
+                                <span className="font-medium">{entry.name}</span>
+                            </div>
+                            <div className="font-mono w-16 text-right text-muted-foreground">
+                                {grandTotal > 0 ? `${((entry.total / grandTotal) * 100).toFixed(0)}%` : '0%'}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </CardContent>
     </Card>
   );
 }
+
