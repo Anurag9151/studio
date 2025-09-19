@@ -240,7 +240,7 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-xl text-destructive">Danger Zone</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg text-destructive">Danger Zone</CardTitle></CardHeader>
             <CardContent>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
