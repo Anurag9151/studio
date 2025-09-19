@@ -25,11 +25,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const getPageTitle = () => {
-    if (pathname.includes('/dashboard')) return 'My Attendance Tracker';
+    if (pathname.includes('/dashboard')) return 'MarkIt';
     if (pathname.includes('/timetable')) return 'Timetable';
     if (pathname.includes('/bunk-suggester')) return 'Analytics';
     if (pathname.includes('/settings')) return 'Settings';
-    return 'My Attendance Tracker';
+    return 'MarkIt';
   };
 
   const isSubPage = !['/dashboard', '/'].includes(pathname);

@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import ClientWrapper from './client-wrapper';
 
 export const metadata: Metadata = {
-  title: 'My Attendance Tracker',
-  description: 'Your personal attendance tracker.',
+  title: 'MarkIt',
+  description: 'Mark your attendance, smartly.',
 };
 
 export const viewport: Viewport = {
