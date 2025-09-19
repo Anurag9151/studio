@@ -1,7 +1,5 @@
 
-import dynamic from 'next/dynamic';
-
-const SettingsForm = dynamic(() => import('./components/settings-form'), { ssr: false });
+import SettingsForm from './components/settings-form';
 
 export default function SettingsPage() {
   return (
