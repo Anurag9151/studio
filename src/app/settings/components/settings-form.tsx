@@ -250,11 +250,17 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-lg text-destructive">Danger Zone</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
-                 <Button variant="outline" className="w-full" onClick={handleExport}>
+            <CardHeader><CardTitle className="text-xl">Data Management</CardTitle></CardHeader>
+            <CardContent>
+                <Button variant="outline" className="w-full" onClick={handleExport}>
                     <FileDown className="mr-2" /> Export Report as PDF
                 </Button>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader><CardTitle className="text-lg text-destructive">Danger Zone</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full">
@@ -274,7 +280,7 @@ export default function SettingsForm() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <p className="text-xs text-muted-foreground pt-2">Use these actions to export your data or start fresh.</p>
+                <p className="text-xs text-muted-foreground pt-2 text-center">Permanently delete all your data.</p>
             </CardContent>
         </Card>
     </div>
