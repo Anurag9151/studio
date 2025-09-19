@@ -45,7 +45,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const [endTime, setEndTime] = useState('');
   
   const weekDays = getWeekDays();
-  const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
   
   useEffect(() => {
     if (open) {
@@ -97,18 +96,8 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
     
-    // Auto-assign color
-    let finalColor: string;
-    const trimmedName = name.trim().toLowerCase();
-    const existingSubject = subjects.find(s => s.name.toLowerCase() === trimmedName);
-
-    if (existingSubject) {
-      finalColor = existingSubject.color || colors[0];
-    } else {
-      const uniqueSubjectNames = new Set(subjects.map(s => s.name.toLowerCase()));
-      const nextColorIndex = uniqueSubjectNames.size % colors.length;
-      finalColor = colors[nextColorIndex];
-    }
+    // All subjects will use the same color
+    const finalColor = 'hsl(var(--primary))';
 
 
     if (subject) {

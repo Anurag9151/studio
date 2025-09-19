@@ -32,7 +32,7 @@ export default function BunkSuggesterView() {
         return {
             id: name,
             name: name,
-            color: subject?.color || '#ccc',
+            color: subject?.color || 'hsl(var(--primary))',
             ...suggestion
         };
     }).sort((a, b) => {

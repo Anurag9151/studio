@@ -22,19 +22,21 @@ export default function SubjectDistribution() {
     
     const subjectNames = [...new Set(subjects.map(s => s.name))];
     const subjectColorMap = new Map<string, string>();
-    subjects.forEach(s => {
-      if (!subjectColorMap.has(s.name)) {
-        subjectColorMap.set(s.name, s.color || colors[subjectColorMap.size % colors.length]);
-      }
-    });
-
+    
     const data = subjectNames.map((name, index) => {
         const subjectIds = subjects.filter(s => s.name === name).map(s => s.id);
         const total = attendanceRecords.filter(r => subjectIds.includes(r.subjectId)).length;
+        
+        let color = 'hsl(var(--primary))';
+        const existingSubject = subjects.find(s => s.name === name);
+        if (existingSubject && existingSubject.color) {
+            color = existingSubject.color;
+        }
+
         return {
             name: name,
             total: total,
-            fill: subjectColorMap.get(name) || colors[index % colors.length]
+            fill: color
         }
     }).filter(d => d.total > 0);
     
