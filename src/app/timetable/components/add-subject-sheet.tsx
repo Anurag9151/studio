@@ -43,7 +43,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
   const [day, setDay] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [color, setColor] = useState('#3b82f6');
   
   const weekDays = getWeekDays();
   const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#ec4899'];
@@ -56,18 +55,13 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         setDay(subject.day !== undefined ? String(subject.day) : '');
         setStartTime(subject.startTime || '');
         setEndTime(subject.endTime || '');
-        setColor(subject.color || colors[0]);
       } else {
         // Reset form for new subject
-        const existingNames = new Set(subjects.map(s => s.name));
-        const nextColorIndex = subjects.filter(s => existingNames.has(s.name)).length % colors.length;
-        
         setName('');
         setTeacher('');
         setDay('');
         setStartTime('');
         setEndTime('');
-        setColor(colors[nextColorIndex] || colors[0]);
       }
     }
   }, [open, subject, subjects]);
@@ -103,18 +97,17 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
         return;
     }
     
-    // Auto-assign color if one isn't selected or if the name is new
-    let finalColor = color;
-    const isNewSubjectName = !subjects.some(s => s.name.toLowerCase() === name.trim().toLowerCase());
-    if (isNewSubjectName) {
-        const usedColors = new Set(subjects.map(s => s.color));
-        const availableColors = colors.filter(c => !usedColors.has(c));
-        finalColor = availableColors.length > 0 ? availableColors[0] : colors[subjects.length % colors.length];
+    // Auto-assign color
+    let finalColor: string;
+    const trimmedName = name.trim().toLowerCase();
+    const existingSubject = subjects.find(s => s.name.toLowerCase() === trimmedName);
+
+    if (existingSubject) {
+      finalColor = existingSubject.color || colors[0];
     } else {
-        const existingSubject = subjects.find(s => s.name.toLowerCase() === name.trim().toLowerCase());
-        if (existingSubject) {
-            finalColor = existingSubject.color || color;
-        }
+      const uniqueSubjectNames = new Set(subjects.map(s => s.name.toLowerCase()));
+      const nextColorIndex = uniqueSubjectNames.size % colors.length;
+      finalColor = colors[nextColorIndex];
     }
 
 
@@ -167,21 +160,6 @@ export function AddSubjectSheet({ subject, children }: AddSubjectSheetProps) {
              <div className="bg-muted/50 p-4 rounded-lg">
               <Label htmlFor="teacher" className="text-sm font-normal text-muted-foreground">Teacher (Optional)</Label>
               <Input id="teacher" value={teacher} onChange={e => setTeacher(e.target.value)} placeholder="e.g. Prof. Smith" className="bg-transparent border-none text-base p-0 h-auto" />
-            </div>
-
-            <div className="bg-muted/50 p-4 rounded-lg">
-                <Label className="text-sm font-normal text-muted-foreground">Color</Label>
-                <div className="flex items-center space-x-2 pt-2">
-                    {colors.map(c => (
-                        <button
-                            key={c}
-                            type="button"
-                            className={`h-8 w-8 rounded-full border-2 ${color === c ? 'border-primary' : 'border-transparent'}`}
-                            style={{ backgroundColor: c }}
-                            onClick={() => setColor(c)}
-                        />
-                    ))}
-                </div>
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg">
