@@ -84,7 +84,17 @@ export default function SubjectWiseAttendance() {
              <ChartContainer config={chartConfig} className="h-[250px] w-full">
                 <ResponsiveContainer>
                     <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                        <XAxis 
+                            dataKey="name" 
+                            tickLine={false} 
+                            axisLine={false}
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={12}
+                            interval={0}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                        />
                         <YAxis 
                             stroke="hsl(var(--muted-foreground))"
                             fontSize={12}
