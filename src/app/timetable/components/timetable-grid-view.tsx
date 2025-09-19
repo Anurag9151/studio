@@ -91,8 +91,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full rounded-md p-1 text-left group relative"
-                                                    style={{ backgroundColor: `${subject.color}40`}}
+                                                    className="w-full h-full rounded-md p-1 text-left group relative bg-primary/20"
                                                 >
                                                     <p className="font-bold text-[10px] leading-tight truncate text-foreground">{subject.name}</p>
                                                     {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 truncate">{subject.teacher}</p>}
