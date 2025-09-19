@@ -87,10 +87,12 @@ export function calculateBunkSuggestion(
         };
     }
 
-    const target = targetPercentage / 100;
+    const target = targetPercentage; // Target is already a percentage (e.g., 75)
 
     if (percentage >= target) {
-        const bunksAllowed = Math.floor((attended - target * total) / target);
+        // Calculate how many classes can be bunked to stay AT or ABOVE target
+        const bunksAllowed = Math.floor((attended - (target / 100) * total) / (target / 100));
+
         if (bunksAllowed > 0) {
              return {
                 attended,
@@ -109,7 +111,9 @@ export function calculateBunkSuggestion(
             };
         }
     } else {
-        const requiredAttend = Math.ceil((target * total - attended) / (1 - target));
+        // Calculate how many classes must be attended to reach the target
+        const requiredAttend = Math.ceil(((target / 100) * total - attended) / (1 - (target / 100)));
+        
         if (requiredAttend > 0) {
             return {
                 attended,
@@ -134,3 +138,4 @@ export function calculateBunkSuggestion(
 export function getWeekDays(): string[] {
   return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 }
+
