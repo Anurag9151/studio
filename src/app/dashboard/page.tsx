@@ -13,12 +13,27 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { PartyPopper, Trash2 } from 'lucide-react';
 import TodaySchedule from './components/today-schedule';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function DashboardPage() {
   const { holidays, setHolidays, attendanceRecords } = useAppContext();
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isClient, setIsClient] = useState(false);
+  const [holidayReason, setHolidayReason] = useState('');
+  const [isHolidayDialogOpen, setIsHolidayDialogOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -36,7 +51,8 @@ export default function DashboardPage() {
 
 
   const selectedDateStr = date ? format(date, 'yyyy-MM-dd') : '';
-  const isHoliday = holidays.some(h => h.date === selectedDateStr);
+  const holidayDetails = holidays.find(h => h.date === selectedDateStr);
+  const isHoliday = !!holidayDetails;
 
   const handleHolidayToggle = () => {
     if (!date) return;
@@ -49,14 +65,21 @@ export default function DashboardPage() {
         description: `${format(date, 'do MMMM')} is no longer a holiday.`,
       });
     } else {
-      // Mark as holiday
-      setHolidays(prev => [...prev, { id: crypto.randomUUID(), date: selectedDateStr }]);
-      toast({
-        title: "Holiday Marked!",
-        description: `${format(date, 'do MMMM')} has been marked as a holiday.`,
-      });
+      // Open dialog to mark as holiday
+      setIsHolidayDialogOpen(true);
     }
   };
+
+  const handleMarkHoliday = () => {
+    if(!date) return;
+    setHolidays(prev => [...prev, { id: crypto.randomUUID(), date: selectedDateStr, reason: holidayReason }]);
+    toast({
+        title: "Holiday Marked!",
+        description: `${format(date, 'do MMMM')} has been marked as a holiday.`,
+    });
+    setHolidayReason('');
+    setIsHolidayDialogOpen(false);
+  }
 
   return (
     <div className="space-y-6">
@@ -101,11 +124,37 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Dialog for adding holiday reason */}
+      <AlertDialog open={isHolidayDialogOpen} onOpenChange={setIsHolidayDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark as Holiday</AlertDialogTitle>
+            <AlertDialogDescription>
+              Optionally, you can add a reason for the holiday on {date ? format(date, 'do MMMM') : ''}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="holiday-reason">Reason for holiday (optional)</Label>
+            <Input 
+              id="holiday-reason"
+              value={holidayReason}
+              onChange={(e) => setHolidayReason(e.target.value)}
+              placeholder="e.g. Festival, Family Function"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setHolidayReason('')}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleMarkHoliday}>Mark Holiday</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
       <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
         {date && (isHoliday ? (
           <div className="text-center text-muted-foreground py-10 bg-card rounded-lg shadow-sm">
               <p className="font-semibold text-lg">It's a Holiday! 🎉</p>
-              <p>No classes scheduled.</p>
+              <p>{holidayDetails?.reason || 'No classes scheduled.'}</p>
           </div>
         ) : (
           <TodaySchedule selectedDate={date} />
