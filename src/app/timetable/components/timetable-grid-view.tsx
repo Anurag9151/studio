@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -68,14 +67,14 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
   return (
-    <div className="bg-card text-card-foreground overflow-x-auto rounded-lg shadow-lg border-2 border-primary/50">
-        <table className="w-full table-fixed border-collapse">
+    <div className="bg-card text-card-foreground overflow-x-auto rounded-lg shadow-sm border">
+        <table className="w-full border-collapse">
             <thead>
-                <tr className="bg-primary/80 text-primary-foreground">
-                    <th className="p-1 border border-border text-xs font-semibold uppercase w-12">Day</th>
+                <tr className="border-b">
+                    <th className="p-2 border-r text-xs font-semibold uppercase w-14 text-muted-foreground"></th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-1 border border-border text-[10px] font-semibold whitespace-nowrap min-w-[60px]">
-                            {format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}
+                        <th key={slot} className="p-2 border-r text-[10px] font-semibold whitespace-nowrap min-w-[70px] text-muted-foreground">
+                            {format(parse(slot, 'HH:mm', new Date()), 'h a')}
                         </th>
                     ))}
                 </tr>
@@ -84,14 +83,14 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                  {workingDayNames.map((day, dayIndex) => {
                     const isToday = weekDays.indexOf(day) === today;
                     return (
-                        <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
-                            <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
+                        <tr key={day} className={cn("border-b", isToday ? "bg-muted/50" : "")}>
+                            <td className="p-2 border-r text-center text-xs font-bold uppercase text-muted-foreground">{day.substring(0,3)}</td>
                              {timeSlots.map(slot => {
                                 if (isLunchSlot(slot)) {
                                   const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
                                   return (
-                                     <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle bg-primary/20">
-                                         <span className="font-bold text-primary/80 text-sm">{lunchChar}</span>
+                                     <td key={`${day}-${slot}`} className="p-1 border-r text-center align-middle bg-muted/30">
+                                         <span className="font-bold text-muted-foreground/50 text-sm select-none">{lunchChar}</span>
                                      </td>
                                   )
                                 }
@@ -99,13 +98,17 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 const subject = subjectsByDayTime[day]?.[slot];
                                 if (subject) {
                                     return (
-                                        <td key={`${day}-${slot}`} className="p-0 border border-border text-center align-middle">
+                                        <td key={`${day}-${slot}`} className="p-1 border-r text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full p-1 text-left group relative bg-primary/20 hover:bg-primary/30 transition-colors flex flex-col justify-center"
+                                                    className="w-full h-full p-2 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
+                                                    style={{ backgroundColor: `${subject.color}1A`}}
                                                 >
-                                                    <p className="font-bold text-[10px] leading-tight break-words text-foreground whitespace-normal">{subject.name}</p>
-                                                    {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 break-words">{subject.teacher}</p>}
+                                                    <div className="w-1 h-4/5 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
+                                                    <div className="pl-2">
+                                                        <p className="font-bold text-[11px] leading-tight text-foreground">{subject.name}</p>
+                                                        {subject.teacher && <p className="text-[10px] text-muted-foreground pt-0.5">{subject.teacher}</p>}
+                                                    </div>
                                                 </button>
                                             </AddSubjectSheet>
                                         </td>
@@ -113,12 +116,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 }
 
                                 return (
-                                    <td key={`${day}-${slot}`} className="border border-border h-12">
+                                    <td key={`${day}-${slot}`} className="border-r h-16">
                                         <AddSubjectSheet
                                             day={weekDays.indexOf(day)}
                                             startTime={slot}
                                         >
-                                            <button className="w-full h-full text-primary/30 hover:bg-primary/5 hover:text-primary/60 transition-colors flex items-center justify-center">
+                                            <button className="w-full h-full text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground/60 transition-colors flex items-center justify-center text-xl">
                                                 +
                                             </button>
                                         </AddSubjectSheet>
@@ -133,5 +136,3 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     </div>
   );
 }
-
-    
