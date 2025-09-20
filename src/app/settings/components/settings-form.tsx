@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, FileDown } from "lucide-react";
+import { Trash2, FileDown, Palette, Percent, Bell, Clock, Trash } from "lucide-react";
 import { exportToPDF } from "@/lib/pdf-export";
 
 
@@ -178,20 +178,24 @@ export default function SettingsForm() {
   return (
     <div className="space-y-6">
         <Card>
-            <CardHeader><CardTitle className="text-xl">Display</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                    <Label htmlFor="dark-mode" className="font-normal">Dark Mode</Label>
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Palette className="w-6 h-6 text-primary" />
+                <CardTitle className="text-xl m-0">Display</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="dark-mode">Dark Mode</Label>
                     <Switch
                         id="dark-mode"
                         checked={isDark}
                         onCheckedChange={handleModeToggle}
                     />
                 </div>
-                <div className="rounded-lg border">
+                <div className="flex items-center justify-between">
+                    <Label>Theme</Label>
                     <Select onValueChange={handleThemeChange} value={theme}>
-                        <SelectTrigger className="w-full border-none h-14 px-4">
-                            <Label className="font-normal">Theme Color</Label>
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="blue">Blue</SelectItem>
@@ -204,40 +208,53 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-xl">Attendance Goal</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                 <div className="rounded-lg border p-3">
-                    <Label htmlFor="target-attendance" className="text-xs">Target Attendance (%)</Label>
-                    <Input id="target-attendance" type="number" value={targetPercentage} onChange={handleTargetChange} className="bg-transparent border-none p-0 h-auto text-base" min="0" max="100" />
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Percent className="w-6 h-6 text-primary" />
+                <CardTitle className="text-xl m-0">Attendance Goal</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="target-attendance">Target Attendance</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="target-attendance" type="number" value={targetPercentage} onChange={handleTargetChange} className="w-20 text-center" min="0" max="100" />
+                      <span>%</span>
+                    </div>
                 </div>
             </CardContent>
         </Card>
         
         <Card>
-            <CardHeader><CardTitle className="text-xl">Notifications</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-4">
-                    <Label htmlFor="reminders" className="font-normal">Enable Reminders</Label>
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Bell className="w-6 h-6 text-primary" />
+                <CardTitle className="text-xl m-0">Notifications</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                    <Label htmlFor="reminders">Enable Reminders</Label>
                     <Switch
                         id="reminders"
                         checked={remindersEnabled}
                         onCheckedChange={handleRemindersToggle}
                     />
                 </div>
-                 <div className="rounded-lg border p-3">
-                    <Label htmlFor="reminder-time" className="text-xs">Reminder Time</Label>
-                    <Input id="reminder-time" type="time" value={reminderTime} onChange={handleReminderTimeChange} className="bg-transparent border-none p-0 h-auto text-base" disabled={!remindersEnabled} />
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="reminder-time">Reminder Time</Label>
+                    <Input id="reminder-time" type="time" value={reminderTime} onChange={handleReminderTimeChange} className="w-[120px]" disabled={!remindersEnabled} />
                 </div>
             </CardContent>
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-xl">Timetable</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="rounded-lg border">
+            <CardHeader className="flex flex-row items-center gap-4">
+                <Clock className="w-6 h-6 text-primary" />
+                <CardTitle className="text-xl m-0">Timetable</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                    <Label>Working Days</Label>
                     <Select onValueChange={handleWorkingDaysChange} value={workingDays}>
-                        <SelectTrigger className="w-full border-none h-14 px-4">
-                            <Label className="font-normal">Working Days</Label>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="Mon-Fri">Monday - Friday</SelectItem>
@@ -245,20 +262,19 @@ export default function SettingsForm() {
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-lg border p-3">
-                        <Label htmlFor="start-time" className="text-xs">Day Start Time</Label>
-                        <Input id="start-time" type="time" value={startTime} onChange={handleStartTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
-                    </div>
-                     <div className="rounded-lg border p-3">
-                        <Label htmlFor="end-time" className="text-xs">Day End Time</Label>
-                        <Input id="end-time" type="time" value={endTime} onChange={handleEndTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
-                    </div>
+                <div className="flex items-center justify-between">
+                    <Label>Day Start Time</Label>
+                    <Input type="time" value={startTime} onChange={handleStartTimeChange} className="w-[120px]" />
                 </div>
-                 <div className="rounded-lg border">
+                 <div className="flex items-center justify-between">
+                    <Label>Day End Time</Label>
+                    <Input type="time" value={endTime} onChange={handleEndTimeChange} className="w-[120px]" />
+                </div>
+                 <div className="flex items-center justify-between">
+                    <Label>Default Class Duration</Label>
                     <Select onValueChange={handlePeriodDurationChange} value={String(classPeriodDuration)}>
-                        <SelectTrigger className="w-full border-none h-14 px-4">
-                            <Label className="font-normal">Default Class Duration</Label>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="40">40 minutes</SelectItem>
@@ -269,45 +285,47 @@ export default function SettingsForm() {
                         </SelectContent>
                     </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-lg border p-3">
-                        <Label htmlFor="lunch-start-time" className="text-xs">Lunch Start Time</Label>
-                        <Input id="lunch-start-time" type="time" value={lunchStartTime} onChange={handleLunchStartTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
-                    </div>
-                    <div className="rounded-lg border">
-                        <Select onValueChange={handleLunchDurationChange} value={String(lunchDuration)}>
-                            <SelectTrigger className="w-full border-none h-14 px-4">
-                                <Label className="font-normal">Lunch Duration</Label>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="0">No Break</SelectItem>
-                                <SelectItem value="30">30 minutes</SelectItem>
-                                <SelectItem value="45">45 minutes</SelectItem>
-                                <SelectItem value="60">1 hour</SelectItem>
-                                <SelectItem value="90">1.5 hours</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <div className="flex items-center justify-between">
+                    <Label>Lunch Start Time</Label>
+                    <Input type="time" value={lunchStartTime} onChange={handleLunchStartTimeChange} className="w-[120px]" />
+                </div>
+                <div className="flex items-center justify-between">
+                    <Label>Lunch Duration</Label>
+                    <Select onValueChange={handleLunchDurationChange} value={String(lunchDuration)}>
+                        <SelectTrigger className="w-[180px]">
+                             <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">No Break</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="45">45 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="90">1.5 hours</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </CardContent>
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-xl">Data Management</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Data Management</CardTitle></CardHeader>
             <CardContent>
                 <Button variant="outline" className="w-full" onClick={handleExport}>
-                    <FileDown className="mr-2" /> Export Report as PDF
+                    <FileDown /> Export Report as PDF
                 </Button>
             </CardContent>
         </Card>
 
         <Card>
-            <CardHeader><CardTitle className="text-lg text-destructive">Danger Zone</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
+            <CardHeader>
+                <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
+                <CardDescription className="text-xs">Permanently delete all your data.</CardDescription>
+            </CardHeader>
+            <CardContent>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full">
-                            <Trash2 className="mr-2" /> Reset App
+                            <Trash /> Reset App
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -323,9 +341,10 @@ export default function SettingsForm() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <p className="text-xs text-muted-foreground pt-2 text-center">Permanently delete all your data.</p>
             </CardContent>
         </Card>
     </div>
   );
 }
+
+    
