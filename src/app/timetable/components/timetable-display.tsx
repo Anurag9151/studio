@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +13,7 @@ import { List, LayoutGrid } from 'lucide-react';
 export default function TimetableDisplay() {
   const { subjects, setSubjects, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('grid');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
