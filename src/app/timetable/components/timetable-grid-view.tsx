@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -55,7 +54,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                 const slotTime = parse(s, "HH:mm", new Date());
                 return !isBefore(subjectStartTime, slotTime);
             });
-            if (slot) {
+            if (slot && !grid[dayName][slot]) { // Check if slot is not already taken
                 grid[dayName][slot] = subject;
             }
         }
@@ -91,7 +90,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                     <th className="p-1 border border-border text-xs font-semibold uppercase w-12">Day</th>
                     {timeSlots.map(slot => (
                         <th key={slot} className="p-1 border border-border text-[10px] font-semibold whitespace-nowrap min-w-[60px]">
-                            {format(new Date(`1970-01-01T${slot}`), 'h:mm a')}
+                            {format(parse(slot, 'HH:mm', new Date()), 'h:mm a')}
                         </th>
                     ))}
                 </tr>
@@ -99,10 +98,15 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
             <tbody>
                  {workingDayNames.map((day, dayIndex) => {
                     const isToday = weekDays.indexOf(day) === today;
+                    let renderedSubjectsForDay: { [key:string]: boolean } = {};
                     return (
                         <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
                             <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
-                             {timeSlots.map((slot, slotIndex) => {
+                             {timeSlots.map((slot) => {
+                                if (renderedSubjectsForDay[slot]) {
+                                  return null; // This slot is covered by a colspan from a previous subject
+                                }
+
                                 if (isLunchSlot(slot)) {
                                   const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
                                   return (
@@ -120,11 +124,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                     );
                                     const colSpan = Math.max(1, Math.round(subjectDuration / (settings.classPeriodDuration || 60)));
                                     
-                                    // Hide subsequent cells that are covered by the colspan
+                                    // Mark subsequent cells that are covered by the colspan
+                                    const currentSlotIndex = timeSlots.indexOf(slot);
                                     for(let i = 1; i < colSpan; i++) {
-                                      const nextSlot = timeSlots[slotIndex + i];
-                                      if(nextSlot && subjectsByDayTime[day]) {
-                                        subjectsByDayTime[day][nextSlot] = { id: `hidden-${day}-${nextSlot}` } as Subject; // Mark as handled
+                                      const nextSlotIndex = currentSlotIndex + i;
+                                      if (nextSlotIndex < timeSlots.length) {
+                                        renderedSubjectsForDay[timeSlots[nextSlotIndex]] = true;
                                       }
                                     }
 
@@ -132,7 +137,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         <td key={`${day}-${slot}`} colSpan={colSpan} className="p-0 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full p-1 text-left group relative bg-primary/20"
+                                                    className="w-full h-full p-1 text-left group relative bg-primary/20 hover:bg-primary/30 transition-colors"
                                                 >
                                                     <p className="font-bold text-[10px] leading-tight break-words text-foreground whitespace-normal">{subject.name}</p>
                                                     {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 break-words">{subject.teacher}</p>}
@@ -140,10 +145,6 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                             </AddSubjectSheet>
                                         </td>
                                     )
-                                }
-                                // Skip rendering if it's marked as hidden by a colspan
-                                if (subject && subject.id.startsWith('hidden-')) {
-                                  return null;
                                 }
 
                                 return (
