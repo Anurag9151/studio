@@ -62,7 +62,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     const slotTime = parse(slot, "HH:mm", new Date());
     const lunchStart = parse(lunchStartTime, "HH:mm", new Date());
     const lunchEnd = parse(lunchEndTime, "HH:mm", new Date());
-    return slotTime >= lunchStart && slotTime &lt; lunchEnd;
+    return slotTime >= lunchStart && slotTime < lunchEnd;
   }
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
