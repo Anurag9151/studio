@@ -109,16 +109,16 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                             const colSpan = Math.max(1, Math.round(subjectDuration / slotDuration));
                             
                             renderedCells[startIdx] = (
-                                <td key={subject.id} colSpan={colSpan} className="p-0.5 border-r align-middle">
+                                <td key={subject.id} colSpan={colSpan} className="p-0.5 border-r align-top">
                                     <AddSubjectSheet subject={subject}>
                                         <button 
-                                            className="w-full h-full p-1 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
+                                            className="w-full h-full p-1 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col"
                                             style={{ backgroundColor: `${subject.color}1A`}}
                                         >
-                                            <div className="w-1 h-4/5 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
+                                            <div className="w-1 h-full absolute left-0 top-0 rounded-l-md" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
                                             <div className="pl-1.5">
-                                                <p className="font-bold text-[10px] leading-tight text-foreground truncate">{subject.name}</p>
-                                                {subject.teacher && <p className="text-[9px] text-muted-foreground pt-0.5 truncate">{subject.teacher}</p>}
+                                                <p className="font-bold text-[10px] leading-tight text-foreground whitespace-normal break-words">{subject.name}</p>
+                                                {subject.teacher && <p className="text-[9px] text-muted-foreground pt-0.5 whitespace-normal break-words">{subject.teacher}</p>}
                                             </div>
                                         </button>
                                     </AddSubjectSheet>
