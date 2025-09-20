@@ -7,7 +7,7 @@ import { getWeekDays, cn } from '@/lib/utils';
 import { AddSubjectSheet } from './add-subject-sheet';
 import { useMemo } from 'react';
 import type { Subject } from '@/lib/types';
-import { getDay, format, parse, addMinutes } from 'date-fns';
+import { getDay, format, parse, addMinutes, isBefore, differenceInMinutes } from 'date-fns';
 
 export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const { settings } = useAppContext();
@@ -24,13 +24,18 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
 
   const timeSlots = useMemo(() => {
     const slots = [];
-    const start = parseInt(settings.startTime?.split(':')[0] || '9');
-    const end = parseInt(settings.endTime?.split(':')[0] || '17');
-    for (let i = start; i < end; i++) {
-      slots.push(`${i.toString().padStart(2, '0')}:00`);
+    if (!settings.startTime || !settings.endTime || !settings.classPeriodDuration) {
+        return [];
+    }
+    let currentTime = parse(settings.startTime, 'HH:mm', new Date());
+    const end = parse(settings.endTime, 'HH:mm', new Date());
+    
+    while(isBefore(currentTime, end)) {
+        slots.push(format(currentTime, 'HH:mm'));
+        currentTime = addMinutes(currentTime, settings.classPeriodDuration);
     }
     return slots;
-  }, [settings.startTime, settings.endTime]);
+  }, [settings.startTime, settings.endTime, settings.classPeriodDuration]);
 
   const subjectsByDayTime = useMemo(() => {
     const grid: { [key: string]: { [key: string]: Subject | null } } = {};
@@ -44,8 +49,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     subjects.forEach(subject => {
         const dayName = weekDays[subject.day];
         if (grid[dayName]) {
-            const startHour = parseInt(subject.startTime.split(':')[0]);
-            const slot = timeSlots.find(s => parseInt(s.split(':')[0]) === startHour);
+            // Find the closest time slot that is at or before the subject's start time
+            const subjectStartTime = parse(subject.startTime, "HH:mm", new Date());
+            const slot = timeSlots.slice().reverse().find(s => {
+                const slotTime = parse(s, "HH:mm", new Date());
+                return !isBefore(subjectStartTime, slotTime);
+            });
             if (slot) {
                 grid[dayName][slot] = subject;
             }
@@ -60,7 +69,17 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
 
   const isLunchSlot = (slot: string) => {
     if (lunchDuration <= 0) return false;
-    return slot >= lunchStartTime && slot < lunchEndTime;
+    const slotTime = parse(slot, "HH:mm", new Date());
+    const lunchStart = parse(lunchStartTime, "HH:mm", new Date());
+    const lunchEnd = parse(lunchEndTime, "HH:mm", new Date());
+
+    const slotDuration = settings.classPeriodDuration || 60;
+    const slotEndTime = addMinutes(slotTime, slotDuration);
+
+    // Check for any overlap between slot and lunch time
+    return (
+      (isBefore(slotTime, lunchEnd) && isBefore(lunchStart, slotEndTime))
+    );
   }
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
@@ -69,10 +88,10 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
         <table className="w-full table-fixed border-collapse">
             <thead>
                 <tr className="bg-primary/80 text-primary-foreground">
-                    <th className="p-1 border border-border text-xs font-semibold uppercase w-12">Time</th>
+                    <th className="p-1 border border-border text-xs font-semibold uppercase w-12">Day</th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-1 border border-border text-[10px] font-semibold whitespace-nowrap">
-                            {format(new Date(`1970-01-01T${slot}`), 'h a')}
+                        <th key={slot} className="p-1 border border-border text-[10px] font-semibold whitespace-nowrap min-w-[60px]">
+                            {format(new Date(`1970-01-01T${slot}`), 'h:mm a')}
                         </th>
                     ))}
                 </tr>
@@ -85,8 +104,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                             <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
                              {timeSlots.map((slot, slotIndex) => {
                                 if (isLunchSlot(slot)) {
-                                  const lunchCharIndex = Math.floor((parse(slot, 'HH:mm', new Date()).getTime() - parse(lunchStartTime, 'HH:mm', new Date()).getTime()) / (1000 * 60 * 60) * lunchLetters.length);
-                                  const lunchChar = lunchLetters[dayIndex] || '';
+                                  const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
                                   return (
                                      <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle bg-primary/20">
                                          <span className="font-bold text-primary/80 text-sm">{lunchChar}</span>
@@ -96,8 +114,22 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 
                                 const subject = subjectsByDayTime[day]?.[slot];
                                 if (subject) {
+                                    const subjectDuration = differenceInMinutes(
+                                        parse(subject.endTime, 'HH:mm', new Date()),
+                                        parse(subject.startTime, 'HH:mm', new Date())
+                                    );
+                                    const colSpan = Math.max(1, Math.round(subjectDuration / (settings.classPeriodDuration || 60)));
+                                    
+                                    // Hide subsequent cells that are covered by the colspan
+                                    for(let i = 1; i < colSpan; i++) {
+                                      const nextSlot = timeSlots[slotIndex + i];
+                                      if(nextSlot && subjectsByDayTime[day]) {
+                                        subjectsByDayTime[day][nextSlot] = { id: `hidden-${day}-${nextSlot}` } as Subject; // Mark as handled
+                                      }
+                                    }
+
                                     return (
-                                        <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle">
+                                        <td key={`${day}-${slot}`} colSpan={colSpan} className="p-0 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
                                                     className="w-full h-full p-1 text-left group relative bg-primary/20"
@@ -109,6 +141,11 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         </td>
                                     )
                                 }
+                                // Skip rendering if it's marked as hidden by a colspan
+                                if (subject && subject.id.startsWith('hidden-')) {
+                                  return null;
+                                }
+
                                 return (
                                     <td key={`${day}-${slot}`} className="border border-border h-12">
                                         <AddSubjectSheet
