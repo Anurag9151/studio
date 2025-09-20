@@ -6,7 +6,13 @@ import { getWeekDays, cn } from '@/lib/utils';
 import { AddSubjectSheet } from './add-subject-sheet';
 import { useMemo } from 'react';
 import type { Subject } from '@/lib/types';
-import { getDay, format, parse, addMinutes, isBefore } from 'date-fns';
+import { getDay, format, parse, addMinutes, isBefore, differenceInMinutes } from 'date-fns';
+
+type TimeSlot = {
+    startTime: string;
+    endTime: string;
+    isLunch: boolean;
+};
 
 export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const { settings } = useAppContext();
@@ -22,48 +28,50 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   }, [settings.workingDays, weekDays]);
 
   const timeSlots = useMemo(() => {
-    const slots = [];
-    const start = parseInt(settings.startTime?.split(':')[0] || '9');
-    const end = parseInt(settings.endTime?.split(':')[0] || '17');
-    for (let i = start; i < end; i++) {
-      slots.push(`${i.toString().padStart(2, '0')}:00`);
-    }
-    return slots;
-  }, [settings.startTime, settings.endTime]);
+    const slots: TimeSlot[] = [];
+    let currentTime = parse(settings.startTime || '09:00', 'HH:mm', new Date());
+    const dayEndTime = parse(settings.endTime || '17:00', 'HH:mm', new Date());
+    const lunchStartTime = parse(settings.lunchStartTime || '13:00', 'HH:mm', new Date());
+    const classDuration = settings.classPeriodDuration || 60;
+    const lunchDuration = settings.lunchDuration || 0;
 
-  const subjectsByDayTime = useMemo(() => {
-    const grid: { [key: string]: { [key: string]: Subject | null } } = {};
-    workingDayNames.forEach(day => {
-      grid[day] = {};
-      timeSlots.forEach(slot => {
-        grid[day][slot] = null;
-      });
-    });
+    let lunchAdded = false;
 
-    subjects.forEach(subject => {
-      const dayName = weekDays[subject.day];
-      if (grid[dayName]) {
-        // Simple placement logic: find the hour slot
-        const hour = subject.startTime.split(':')[0] + ':00';
-        if (grid[dayName]?.[hour] === null) {
-          grid[dayName][hour] = subject;
+    while (isBefore(currentTime, dayEndTime)) {
+        // Check if it's time for lunch
+        if (!lunchAdded && lunchDuration > 0 && currentTime >= lunchStartTime) {
+            const lunchEndTime = addMinutes(currentTime, lunchDuration);
+            slots.push({
+                startTime: format(currentTime, 'HH:mm'),
+                endTime: format(lunchEndTime, 'HH:mm'),
+                isLunch: true,
+            });
+            currentTime = lunchEndTime;
+            lunchAdded = true;
+            continue;
         }
-      }
+
+        const slotEndTime = addMinutes(currentTime, classDuration);
+        slots.push({
+            startTime: format(currentTime, 'HH:mm'),
+            endTime: format(slotEndTime, 'HH:mm'),
+            isLunch: false,
+        });
+        currentTime = slotEndTime;
+    }
+
+    return slots;
+  }, [settings.startTime, settings.endTime, settings.classPeriodDuration, settings.lunchStartTime, settings.lunchDuration]);
+
+
+  const findSlotIndex = (time: string) => {
+    const timeDate = parse(time, 'HH:mm', new Date());
+    return timeSlots.findIndex(slot => {
+        const slotStartDate = parse(slot.startTime, 'HH:mm', new Date());
+        return timeDate >= slotStartDate && timeDate < parse(slot.endTime, 'HH:mm', new Date());
     });
-    return grid;
-  }, [subjects, workingDayNames, timeSlots, weekDays]);
-
-  const lunchStartTime = settings.lunchStartTime || '13:00';
-  const lunchDuration = settings.lunchDuration || 0;
-  const lunchEndTime = format(addMinutes(parse(lunchStartTime, 'HH:mm', new Date()), lunchDuration), 'HH:mm');
-
-  const isLunchSlot = (slot: string) => {
-    if (lunchDuration <= 0) return false;
-    const slotTime = parse(slot, "HH:mm", new Date());
-    const lunchStart = parse(lunchStartTime, "HH:mm", new Date());
-    const lunchEnd = parse(lunchEndTime, "HH:mm", new Date());
-    return slotTime >= lunchStart && slotTime < lunchEnd;
   }
+
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
   return (
@@ -73,53 +81,81 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                 <tr className="border-b">
                     <th className="p-1 border-r text-xs font-semibold uppercase w-10 text-muted-foreground"></th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-1 border-r text-[9px] font-medium text-muted-foreground">
-                            {format(parse(slot, 'HH:mm', new Date()), 'h a')}
+                        <th key={slot.startTime} className="p-1 border-r text-[9px] font-medium text-muted-foreground">
+                            {format(parse(slot.startTime, 'HH:mm', new Date()), 'h:mm a')}
                         </th>
                     ))}
                 </tr>
             </thead>
             <tbody>
                  {workingDayNames.map((day, dayIndex) => {
-                    const isToday = weekDays.indexOf(day) === today;
+                    const dayOfWeek = weekDays.indexOf(day);
+                    const isToday = dayOfWeek === today;
+                    const daySubjects = subjects.filter(s => s.day === dayOfWeek).sort((a, b) => a.startTime.localeCompare(b.startTime));
+                    
+                    const renderedCells = Array(timeSlots.length).fill(null);
+
+                    daySubjects.forEach(subject => {
+                        const startIdx = findSlotIndex(subject.startTime);
+                        if (startIdx !== -1 && renderedCells[startIdx] === null) {
+                             const subjectDuration = differenceInMinutes(
+                                parse(subject.endTime, 'HH:mm', new Date()),
+                                parse(subject.startTime, 'HH:mm', new Date())
+                            );
+                            const slotDuration = differenceInMinutes(
+                                parse(timeSlots[startIdx].endTime, 'HH:mm', new Date()),
+                                parse(timeSlots[startIdx].startTime, 'HH:mm', new Date())
+                            );
+                            const colSpan = Math.max(1, Math.round(subjectDuration / slotDuration));
+                            
+                            renderedCells[startIdx] = (
+                                <td key={subject.id} colSpan={colSpan} className="p-0.5 border-r align-middle">
+                                    <AddSubjectSheet subject={subject}>
+                                        <button 
+                                            className="w-full h-full p-1 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
+                                            style={{ backgroundColor: `${subject.color}1A`}}
+                                        >
+                                            <div className="w-1 h-4/5 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
+                                            <div className="pl-1.5">
+                                                <p className="font-bold text-[10px] leading-tight text-foreground truncate">{subject.name}</p>
+                                                {subject.teacher && <p className="text-[9px] text-muted-foreground pt-0.5 truncate">{subject.teacher}</p>}
+                                            </div>
+                                        </button>
+                                    </AddSubjectSheet>
+                                </td>
+                            );
+
+                            for(let i=1; i < colSpan; i++) {
+                                if (startIdx + i < renderedCells.length) {
+                                    renderedCells[startIdx + i] = 'occupied';
+                                }
+                            }
+                        }
+                    });
+
                     return (
                         <tr key={day} className={cn("border-b", isToday ? "bg-muted/50" : "")}>
                             <td className="p-1 border-r text-center text-xs font-bold uppercase text-muted-foreground">{day.substring(0,3)}</td>
-                             {timeSlots.map(slot => {
-                                if (isLunchSlot(slot)) {
-                                  const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
-                                  return (
-                                     <td key={`${day}-${slot}`} className="p-1 border-r text-center align-middle bg-muted/30">
-                                         <span className="font-bold text-muted-foreground/50 text-sm select-none">{lunchChar}</span>
-                                     </td>
-                                  )
-                                }
-                                
-                                const subject = subjectsByDayTime[day]?.[slot];
-                                if (subject) {
-                                    return (
-                                        <td key={`${day}-${slot}`} className="p-0.5 border-r align-middle">
-                                            <AddSubjectSheet subject={subject}>
-                                                <button 
-                                                    className="w-full h-full p-1 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
-                                                    style={{ backgroundColor: `${subject.color}1A`}}
-                                                >
-                                                    <div className="w-1 h-4/5 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
-                                                    <div className="pl-1.5">
-                                                        <p className="font-bold text-[10px] leading-tight text-foreground truncate">{subject.name}</p>
-                                                        {subject.teacher && <p className="text-[9px] text-muted-foreground pt-0.5 truncate">{subject.teacher}</p>}
-                                                    </div>
-                                                </button>
-                                            </AddSubjectSheet>
-                                        </td>
-                                    )
+                             {renderedCells.map((cell, index) => {
+                                if (cell === 'occupied') return null;
+                                if (cell) return cell;
+
+                                const slot = timeSlots[index];
+
+                                if(slot.isLunch) {
+                                     const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
+                                     return (
+                                         <td key={`${day}-${slot.startTime}`} className="p-1 border-r text-center align-middle bg-muted/30">
+                                             <span className="font-bold text-muted-foreground/50 text-sm select-none">{lunchChar}</span>
+                                         </td>
+                                     )
                                 }
 
                                 return (
-                                    <td key={`${day}-${slot}`} className="border-r h-14">
+                                    <td key={`${day}-${slot.startTime}`} className="border-r h-14">
                                         <AddSubjectSheet
-                                            day={weekDays.indexOf(day)}
-                                            startTime={slot}
+                                            day={dayOfWeek}
+                                            startTime={slot.startTime}
                                         >
                                             <button className="w-full h-full text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground/60 transition-colors flex items-center justify-center text-lg">
                                                 +
