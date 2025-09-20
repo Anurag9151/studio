@@ -68,12 +68,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
 
   return (
     <div className="bg-card text-card-foreground overflow-x-auto rounded-lg shadow-sm border">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse table-fixed">
             <thead>
                 <tr className="border-b">
-                    <th className="p-2 border-r text-xs font-semibold uppercase w-12 text-muted-foreground"></th>
+                    <th className="p-1 border-r text-xs font-semibold uppercase w-10 text-muted-foreground"></th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-1 border-r text-[10px] font-semibold whitespace-nowrap text-muted-foreground">
+                        <th key={slot} className="p-1 border-r text-[9px] font-medium text-muted-foreground">
                             {format(parse(slot, 'HH:mm', new Date()), 'h a')}
                         </th>
                     ))}
@@ -84,7 +84,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                     const isToday = weekDays.indexOf(day) === today;
                     return (
                         <tr key={day} className={cn("border-b", isToday ? "bg-muted/50" : "")}>
-                            <td className="p-2 border-r text-center text-xs font-bold uppercase text-muted-foreground">{day.substring(0,3)}</td>
+                            <td className="p-1 border-r text-center text-xs font-bold uppercase text-muted-foreground">{day.substring(0,3)}</td>
                              {timeSlots.map(slot => {
                                 if (isLunchSlot(slot)) {
                                   const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
@@ -98,16 +98,16 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 const subject = subjectsByDayTime[day]?.[slot];
                                 if (subject) {
                                     return (
-                                        <td key={`${day}-${slot}`} className="p-1 border-r text-center align-middle">
+                                        <td key={`${day}-${slot}`} className="p-0.5 border-r align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full p-2 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
+                                                    className="w-full h-full p-1 text-left group relative rounded-md hover:bg-muted/80 transition-colors flex flex-col justify-center"
                                                     style={{ backgroundColor: `${subject.color}1A`}}
                                                 >
                                                     <div className="w-1 h-4/5 absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full" style={{backgroundColor: subject.color || 'hsl(var(--primary))'}} />
-                                                    <div className="pl-2">
-                                                        <p className="font-bold text-[11px] leading-tight text-foreground">{subject.name}</p>
-                                                        {subject.teacher && <p className="text-[10px] text-muted-foreground pt-0.5">{subject.teacher}</p>}
+                                                    <div className="pl-1.5">
+                                                        <p className="font-bold text-[10px] leading-tight text-foreground truncate">{subject.name}</p>
+                                                        {subject.teacher && <p className="text-[9px] text-muted-foreground pt-0.5 truncate">{subject.teacher}</p>}
                                                     </div>
                                                 </button>
                                             </AddSubjectSheet>
@@ -116,12 +116,12 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 }
 
                                 return (
-                                    <td key={`${day}-${slot}`} className="border-r h-16">
+                                    <td key={`${day}-${slot}`} className="border-r h-14">
                                         <AddSubjectSheet
                                             day={weekDays.indexOf(day)}
                                             startTime={slot}
                                         >
-                                            <button className="w-full h-full text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground/60 transition-colors flex items-center justify-center text-xl">
+                                            <button className="w-full h-full text-muted-foreground/30 hover:bg-muted/50 hover:text-muted-foreground/60 transition-colors flex items-center justify-center text-lg">
                                                 +
                                             </button>
                                         </AddSubjectSheet>
