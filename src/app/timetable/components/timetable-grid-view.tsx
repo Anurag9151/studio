@@ -6,7 +6,7 @@ import { getWeekDays, cn } from '@/lib/utils';
 import { AddSubjectSheet } from './add-subject-sheet';
 import { useMemo } from 'react';
 import type { Subject } from '@/lib/types';
-import { getDay, format, parse, addMinutes, isBefore, differenceInMinutes } from 'date-fns';
+import { getDay, format, parse, addMinutes, isBefore } from 'date-fns';
 
 export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const { settings } = useAppContext();
@@ -23,18 +23,13 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
 
   const timeSlots = useMemo(() => {
     const slots = [];
-    if (!settings.startTime || !settings.endTime || !settings.classPeriodDuration) {
-        return [];
-    }
-    let currentTime = parse(settings.startTime, 'HH:mm', new Date());
-    const end = parse(settings.endTime, 'HH:mm', new Date());
-    
-    while(isBefore(currentTime, end)) {
-        slots.push(format(currentTime, 'HH:mm'));
-        currentTime = addMinutes(currentTime, settings.classPeriodDuration);
+    const start = parseInt(settings.startTime?.split(':')[0] || '9');
+    const end = parseInt(settings.endTime?.split(':')[0] || '17');
+    for (let i = start; i < end; i++) {
+      slots.push(`${i.toString().padStart(2, '0')}:00`);
     }
     return slots;
-  }, [settings.startTime, settings.endTime, settings.classPeriodDuration]);
+  }, [settings.startTime, settings.endTime]);
 
   const subjectsByDayTime = useMemo(() => {
     const grid: { [key: string]: { [key: string]: Subject | null } } = {};
@@ -46,18 +41,14 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     });
 
     subjects.forEach(subject => {
-        const dayName = weekDays[subject.day];
-        if (grid[dayName]) {
-            // Find the closest time slot that is at or before the subject's start time
-            const subjectStartTime = parse(subject.startTime, "HH:mm", new Date());
-            const slot = timeSlots.slice().reverse().find(s => {
-                const slotTime = parse(s, "HH:mm", new Date());
-                return !isBefore(subjectStartTime, slotTime);
-            });
-            if (slot && !grid[dayName][slot]) { // Check if slot is not already taken
-                grid[dayName][slot] = subject;
-            }
+      const dayName = weekDays[subject.day];
+      if (grid[dayName]) {
+        // Simple placement logic: find the hour slot
+        const hour = subject.startTime.split(':')[0] + ':00';
+        if (hour in grid[dayName] && grid[dayName][hour] === null) {
+          grid[dayName][hour] = subject;
         }
+      }
     });
     return grid;
   }, [subjects, workingDayNames, timeSlots, weekDays]);
@@ -71,14 +62,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     const slotTime = parse(slot, "HH:mm", new Date());
     const lunchStart = parse(lunchStartTime, "HH:mm", new Date());
     const lunchEnd = parse(lunchEndTime, "HH:mm", new Date());
-
-    const slotDuration = settings.classPeriodDuration || 60;
-    const slotEndTime = addMinutes(slotTime, slotDuration);
-
-    // Check for any overlap between slot and lunch time
-    return (
-      (isBefore(slotTime, lunchEnd) && isBefore(lunchStart, slotEndTime))
-    );
+    return slotTime >= lunchStart && slotTime &lt; lunchEnd;
   }
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
@@ -98,15 +82,10 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
             <tbody>
                  {workingDayNames.map((day, dayIndex) => {
                     const isToday = weekDays.indexOf(day) === today;
-                    let renderedSubjectsForDay: { [key:string]: boolean } = {};
                     return (
                         <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
                             <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
-                             {timeSlots.map((slot) => {
-                                if (renderedSubjectsForDay[slot]) {
-                                  return null; // This slot is covered by a colspan from a previous subject
-                                }
-
+                             {timeSlots.map(slot => {
                                 if (isLunchSlot(slot)) {
                                   const lunchChar = lunchLetters[dayIndex % lunchLetters.length] || '';
                                   return (
@@ -118,23 +97,8 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                 
                                 const subject = subjectsByDayTime[day]?.[slot];
                                 if (subject) {
-                                    const subjectDuration = differenceInMinutes(
-                                        parse(subject.endTime, 'HH:mm', new Date()),
-                                        parse(subject.startTime, 'HH:mm', new Date())
-                                    );
-                                    const colSpan = Math.max(1, Math.round(subjectDuration / (settings.classPeriodDuration || 60)));
-                                    
-                                    // Mark subsequent cells that are covered by the colspan
-                                    const currentSlotIndex = timeSlots.indexOf(slot);
-                                    for(let i = 1; i < colSpan; i++) {
-                                      const nextSlotIndex = currentSlotIndex + i;
-                                      if (nextSlotIndex < timeSlots.length) {
-                                        renderedSubjectsForDay[timeSlots[nextSlotIndex]] = true;
-                                      }
-                                    }
-
                                     return (
-                                        <td key={`${day}-${slot}`} colSpan={colSpan} className="p-0 border border-border text-center align-middle">
+                                        <td key={`${day}-${slot}`} className="p-0 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
                                                     className="w-full h-full p-1 text-left group relative bg-primary/20 hover:bg-primary/30 transition-colors"
