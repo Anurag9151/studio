@@ -29,7 +29,9 @@ export type AppSettings = {
   workingDays?: 'Mon-Fri' | 'Mon-Sat';
   startTime?: string; // "HH:mm"
   endTime?: string; // "HH"mm"
-  lunchBreak?: boolean;
+  classPeriodDuration?: number; // in minutes
+  lunchStartTime?: string; // "HH:mm"
+  lunchDuration?: number; // in minutes
   remindersEnabled?: boolean;
   reminderTime?: string; // "HH:mm"
 };

@@ -26,6 +26,7 @@ import { useAppContext } from '@/contexts/app-context';
 import { useToast } from '@/hooks/use-toast';
 import { getWeekDays } from '@/lib/utils';
 import type { Subject } from '@/lib/types';
+import { addMinutes, format, parse } from 'date-fns';
 
 type AddSubjectSheetProps = {
   subject?: Subject;
@@ -35,7 +36,7 @@ type AddSubjectSheetProps = {
 };
 
 export function AddSubjectSheet({ subject, children, day: preselectedDay, startTime: preselectedStartTime }: AddSubjectSheetProps) {
-  const { subjects, setSubjects } = useAppContext();
+  const { subjects, setSubjects, settings } = useAppContext();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
@@ -55,6 +56,14 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
     'hsl(var(--chart-5))',
   ];
   
+  const calculateEndTime = (start: string) => {
+    if (!start) return '';
+    const duration = settings.classPeriodDuration || 60;
+    const startTimeDate = parse(start, 'HH:mm', new Date());
+    const endTimeDate = addMinutes(startTimeDate, duration);
+    return format(endTimeDate, 'HH:mm');
+  };
+
   useEffect(() => {
     if (open) {
       if (subject) {
@@ -65,15 +74,21 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
         setEndTime(subject.endTime || '');
       } else {
         // Reset form for new subject
+        const newStartTime = preselectedStartTime || '';
         setName('');
         setTeacher('');
         setDay(preselectedDay !== undefined ? String(preselectedDay) : '');
-        setStartTime(preselectedStartTime || '');
-        setEndTime(preselectedStartTime ? `${parseInt(preselectedStartTime.split(':')[0]) + 1}:00`.padStart(5, '0') : '');
+        setStartTime(newStartTime);
+        setEndTime(calculateEndTime(newStartTime));
       }
     }
-  }, [open, subject, subjects, preselectedDay, preselectedStartTime]);
+  }, [open, subject, preselectedDay, preselectedStartTime]);
 
+  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStartTime = e.target.value;
+    setStartTime(newStartTime);
+    setEndTime(calculateEndTime(newStartTime));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,7 +221,7 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
             <div className="grid grid-cols-2 gap-4">
                 <div className="bg-muted/50 p-4 rounded-lg">
                     <Label htmlFor="start-time" className="text-sm font-normal text-muted-foreground">Start Time</Label>
-                    <Input id="start-time" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="bg-transparent border-none text-base p-0 h-auto" />
+                    <Input id="start-time" type="time" value={startTime} onChange={handleStartTimeChange} className="bg-transparent border-none text-base p-0 h-auto" />
                 </div>
                 <div className="bg-muted/50 p-4 rounded-lg">
                     <Label htmlFor="end-time" className="text-sm font-normal text-muted-foreground">End Time</Label>

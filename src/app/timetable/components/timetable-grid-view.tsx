@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -6,7 +7,7 @@ import { getWeekDays, cn } from '@/lib/utils';
 import { AddSubjectSheet } from './add-subject-sheet';
 import { useMemo } from 'react';
 import type { Subject } from '@/lib/types';
-import { getDay, format } from 'date-fns';
+import { getDay, format, parse, addMinutes } from 'date-fns';
 
 export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
   const { settings } = useAppContext();
@@ -53,7 +54,14 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     return grid;
   }, [subjects, workingDayNames, timeSlots, weekDays]);
 
-  const lunchTimeSlot = '13:00';
+  const lunchStartTime = settings.lunchStartTime || '13:00';
+  const lunchDuration = settings.lunchDuration || 0;
+  const lunchEndTime = format(addMinutes(parse(lunchStartTime, 'HH:mm', new Date()), lunchDuration), 'HH:mm');
+
+  const isLunchSlot = (slot: string) => {
+    if (lunchDuration <= 0) return false;
+    return slot >= lunchStartTime && slot < lunchEndTime;
+  }
   const lunchLetters = ['L', 'U', 'N', 'C', 'H'];
 
   return (
@@ -76,7 +84,8 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                         <tr key={day} className={cn(isToday ? "bg-primary/10" : "")}>
                             <td className="p-1 border border-border text-center text-xs font-bold uppercase bg-primary/80 text-primary-foreground">{day.substring(0,3)}</td>
                              {timeSlots.map((slot, slotIndex) => {
-                                if (settings.lunchBreak && slot === lunchTimeSlot) {
+                                if (isLunchSlot(slot)) {
+                                  const lunchCharIndex = Math.floor((parse(slot, 'HH:mm', new Date()).getTime() - parse(lunchStartTime, 'HH:mm', new Date()).getTime()) / (1000 * 60 * 60) * lunchLetters.length);
                                   const lunchChar = lunchLetters[dayIndex] || '';
                                   return (
                                      <td key={`${day}-${slot}`} className="p-1 border border-border text-center align-middle bg-primary/20">
@@ -93,7 +102,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                                 <button 
                                                     className="w-full h-full p-1 text-left group relative bg-primary/20"
                                                 >
-                                                    <p className="font-bold text-[10px] leading-tight break-words text-foreground">{subject.name}</p>
+                                                    <p className="font-bold text-[10px] leading-tight break-words text-foreground whitespace-normal">{subject.name}</p>
                                                     {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 break-words">{subject.teacher}</p>}
                                                 </button>
                                             </AddSubjectSheet>

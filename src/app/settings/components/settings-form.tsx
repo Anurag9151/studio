@@ -42,9 +42,11 @@ export default function SettingsForm() {
   const [workingDays, setWorkingDays] = useState('Mon-Fri');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
-  const [lunchBreak, setLunchBreak] = useState(true);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('18:00');
+  const [classPeriodDuration, setClassPeriodDuration] = useState(60);
+  const [lunchStartTime, setLunchStartTime] = useState('13:00');
+  const [lunchDuration, setLunchDuration] = useState(60);
 
 
   // Sync with context on initial load and when context changes
@@ -55,9 +57,11 @@ export default function SettingsForm() {
     setWorkingDays(settings.workingDays || 'Mon-Fri');
     setStartTime(settings.startTime || '09:00');
     setEndTime(settings.endTime || '17:00');
-    setLunchBreak(settings.lunchBreak === undefined ? true : settings.lunchBreak);
     setRemindersEnabled(settings.remindersEnabled || false);
     setReminderTime(settings.reminderTime || '18:00');
+    setClassPeriodDuration(settings.classPeriodDuration || 60);
+    setLunchStartTime(settings.lunchStartTime || '13:00');
+    setLunchDuration(settings.lunchDuration || 60);
 
 
     // Apply theme/mode to body
@@ -120,12 +124,6 @@ export default function SettingsForm() {
     setSettings(prev => ({ ...prev, endTime: e.target.value }));
   };
 
-  const handleLunchBreakToggle = (value: boolean) => {
-    setLunchBreak(value);
-    setSettings(prev => ({ ...prev, lunchBreak: value }));
-    toast({ title: "Timetable Updated", description: `Lunch break ${value ? 'enabled' : 'disabled'}.` });
-  };
-
   const handleRemindersToggle = (value: boolean) => {
     setRemindersEnabled(value);
     setSettings(prev => ({ ...prev, remindersEnabled: value }));
@@ -135,6 +133,25 @@ export default function SettingsForm() {
   const handleReminderTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setReminderTime(e.target.value);
     setSettings(prev => ({ ...prev, reminderTime: e.target.value }));
+  };
+
+  const handlePeriodDurationChange = (value: string) => {
+    const duration = parseInt(value, 10);
+    setClassPeriodDuration(duration);
+    setSettings(prev => ({ ...prev, classPeriodDuration: duration }));
+    toast({ title: "Timetable Updated", description: `Class duration set to ${duration} minutes.` });
+  };
+
+  const handleLunchStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLunchStartTime(e.target.value);
+    setSettings(prev => ({ ...prev, lunchStartTime: e.target.value }));
+  };
+
+  const handleLunchDurationChange = (value: string) => {
+    const duration = parseInt(value, 10);
+    setLunchDuration(duration);
+    setSettings(prev => ({ ...prev, lunchDuration: duration }));
+    toast({ title: "Timetable Updated", description: `Lunch duration set to ${duration} minutes.` });
   };
   
   const handleResetApp = () => {
@@ -217,7 +234,7 @@ export default function SettingsForm() {
         <Card>
             <CardHeader><CardTitle className="text-xl">Timetable</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-                 <div className="rounded-lg border">
+                <div className="rounded-lg border">
                     <Select onValueChange={handleWorkingDaysChange} value={workingDays}>
                         <SelectTrigger className="w-full border-none h-14 px-4">
                             <Label className="font-normal">Working Days</Label>
@@ -230,21 +247,47 @@ export default function SettingsForm() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-lg border p-3">
-                        <Label htmlFor="start-time" className="text-xs">Start Time</Label>
+                        <Label htmlFor="start-time" className="text-xs">Day Start Time</Label>
                         <Input id="start-time" type="time" value={startTime} onChange={handleStartTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
                     </div>
                      <div className="rounded-lg border p-3">
-                        <Label htmlFor="end-time" className="text-xs">End Time</Label>
+                        <Label htmlFor="end-time" className="text-xs">Day End Time</Label>
                         <Input id="end-time" type="time" value={endTime} onChange={handleEndTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
                     </div>
                 </div>
-                 <div className="flex items-center justify-between rounded-lg border p-4">
-                    <Label htmlFor="lunch-break" className="font-normal">Show Lunch Break (1-2 PM)</Label>
-                    <Switch
-                        id="lunch-break"
-                        checked={lunchBreak}
-                        onCheckedChange={handleLunchBreakToggle}
-                    />
+                 <div className="rounded-lg border">
+                    <Select onValueChange={handlePeriodDurationChange} value={String(classPeriodDuration)}>
+                        <SelectTrigger className="w-full border-none h-14 px-4">
+                            <Label className="font-normal">Default Class Duration</Label>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="40">40 minutes</SelectItem>
+                            <SelectItem value="45">45 minutes</SelectItem>
+                            <SelectItem value="50">50 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="90">1 hour 30 minutes</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg border p-3">
+                        <Label htmlFor="lunch-start-time" className="text-xs">Lunch Start Time</Label>
+                        <Input id="lunch-start-time" type="time" value={lunchStartTime} onChange={handleLunchStartTimeChange} className="bg-transparent border-none p-0 h-auto text-base" />
+                    </div>
+                    <div className="rounded-lg border">
+                        <Select onValueChange={handleLunchDurationChange} value={String(lunchDuration)}>
+                            <SelectTrigger className="w-full border-none h-14 px-4">
+                                <Label className="font-normal">Lunch Duration</Label>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">No Break</SelectItem>
+                                <SelectItem value="30">30 minutes</SelectItem>
+                                <SelectItem value="45">45 minutes</SelectItem>
+                                <SelectItem value="60">1 hour</SelectItem>
+                                <SelectItem value="90">1.5 hours</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </CardContent>
         </Card>

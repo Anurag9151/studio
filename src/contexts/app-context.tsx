@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, ReactNode, useEffect } from 'react';
@@ -28,7 +29,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     workingDays: 'Mon-Sat',
     startTime: '09:00',
     endTime: '17:00',
-    lunchBreak: true,
+    classPeriodDuration: 60,
+    lunchStartTime: '13:00',
+    lunchDuration: 60,
     remindersEnabled: false,
     reminderTime: '18:00',
   });
