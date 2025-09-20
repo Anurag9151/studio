@@ -45,7 +45,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
       if (grid[dayName]) {
         // Simple placement logic: find the hour slot
         const hour = subject.startTime.split(':')[0] + ':00';
-        if (hour in grid[dayName] && grid[dayName][hour] === null) {
+        if (grid[dayName]?.[hour] === null) {
           grid[dayName][hour] = subject;
         }
       }
@@ -101,7 +101,7 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
                                         <td key={`${day}-${slot}`} className="p-0 border border-border text-center align-middle">
                                             <AddSubjectSheet subject={subject}>
                                                 <button 
-                                                    className="w-full h-full p-1 text-left group relative bg-primary/20 hover:bg-primary/30 transition-colors"
+                                                    className="w-full h-full p-1 text-left group relative bg-primary/20 hover:bg-primary/30 transition-colors flex flex-col justify-center"
                                                 >
                                                     <p className="font-bold text-[10px] leading-tight break-words text-foreground whitespace-normal">{subject.name}</p>
                                                     {subject.teacher && <p className="text-[9px] text-muted-foreground opacity-80 break-words">{subject.teacher}</p>}
