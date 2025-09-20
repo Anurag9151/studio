@@ -71,9 +71,9 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
         <table className="w-full border-collapse">
             <thead>
                 <tr className="border-b">
-                    <th className="p-2 border-r text-xs font-semibold uppercase w-14 text-muted-foreground"></th>
+                    <th className="p-2 border-r text-xs font-semibold uppercase w-12 text-muted-foreground"></th>
                     {timeSlots.map(slot => (
-                        <th key={slot} className="p-2 border-r text-[10px] font-semibold whitespace-nowrap min-w-[70px] text-muted-foreground">
+                        <th key={slot} className="p-1 border-r text-[10px] font-semibold whitespace-nowrap text-muted-foreground">
                             {format(parse(slot, 'HH:mm', new Date()), 'h a')}
                         </th>
                     ))}
