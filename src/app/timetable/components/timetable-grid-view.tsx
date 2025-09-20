@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -132,3 +133,5 @@ export function TimetableGridView({ subjects }: { subjects: Subject[] }) {
     </div>
   );
 }
+
+    

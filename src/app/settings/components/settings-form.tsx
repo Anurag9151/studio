@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, FileDown, Palette, Percent, Bell, Clock, Trash } from "lucide-react";
+import { Trash2, FileDown } from "lucide-react";
 import { exportToPDF } from "@/lib/pdf-export";
 
 
@@ -178,11 +178,8 @@ export default function SettingsForm() {
   return (
     <div className="space-y-6">
         <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Palette className="w-6 h-6 text-primary" />
-                <CardTitle className="text-xl m-0">Display</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
+            <CardHeader><CardTitle>Display</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="dark-mode">Dark Mode</Label>
                     <Switch
@@ -208,11 +205,8 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Percent className="w-6 h-6 text-primary" />
-                <CardTitle className="text-xl m-0">Attendance Goal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
+            <CardHeader><CardTitle>Attendance</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
                  <div className="flex items-center justify-between">
                     <Label htmlFor="target-attendance">Target Attendance</Label>
                     <div className="flex items-center gap-2">
@@ -224,11 +218,8 @@ export default function SettingsForm() {
         </Card>
         
         <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Bell className="w-6 h-6 text-primary" />
-                <CardTitle className="text-xl m-0">Notifications</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
+            <CardHeader><CardTitle>Notifications</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="reminders">Enable Reminders</Label>
                     <Switch
@@ -245,11 +236,8 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Clock className="w-6 h-6 text-primary" />
-                <CardTitle className="text-xl m-0">Timetable</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-2">
+            <CardHeader><CardTitle>Timetable</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                     <Label>Working Days</Label>
                     <Select onValueChange={handleWorkingDaysChange} value={workingDays}>
@@ -308,24 +296,17 @@ export default function SettingsForm() {
         </Card>
 
         <Card>
-            <CardHeader><CardTitle>Data Management</CardTitle></CardHeader>
-            <CardContent>
-                <Button variant="outline" className="w-full" onClick={handleExport}>
-                    <FileDown /> Export Report as PDF
-                </Button>
-            </CardContent>
-        </Card>
-
-        <Card>
             <CardHeader>
                 <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
-                <CardDescription className="text-xs">Permanently delete all your data.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+                <Button variant="outline" className="w-full flex items-center gap-2" onClick={handleExport}>
+                    <FileDown className="h-4 w-4" /> Export Report as PDF
+                </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full">
-                            <Trash /> Reset App
+                        <Button variant="destructive" className="w-full flex items-center gap-2">
+                            <Trash2 className="h-4 w-4" /> Reset App
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
