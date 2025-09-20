@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,7 +25,7 @@ import { useAppContext } from '@/contexts/app-context';
 import { useToast } from '@/hooks/use-toast';
 import { getWeekDays } from '@/lib/utils';
 import type { Subject } from '@/lib/types';
-import { addMinutes, format, parse } from 'date-fns';
+import { addMinutes, format, parse, differenceInMinutes } from 'date-fns';
 
 type AddSubjectSheetProps = {
   subject?: Subject;
@@ -46,7 +45,8 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
   const [day, setDay] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  
+  const [duration, setDuration] = useState<number | string>(settings.classPeriodDuration || 60);
+
   const weekDays = getWeekDays();
   const chartColors = [
     'hsl(var(--chart-1))',
@@ -56,11 +56,10 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
     'hsl(var(--chart-5))',
   ];
   
-  const calculateEndTime = (start: string) => {
+  const calculateEndTime = (start: string, newDuration: number) => {
     if (!start) return '';
-    const duration = settings.classPeriodDuration || 60;
     const startTimeDate = parse(start, 'HH:mm', new Date());
-    const endTimeDate = addMinutes(startTimeDate, duration);
+    const endTimeDate = addMinutes(startTimeDate, newDuration);
     return format(endTimeDate, 'HH:mm');
   };
 
@@ -72,23 +71,44 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
         setDay(subject.day !== undefined ? String(subject.day) : '');
         setStartTime(subject.startTime || '');
         setEndTime(subject.endTime || '');
+        if (subject.startTime && subject.endTime) {
+            const start = parse(subject.startTime, 'HH:mm', new Date());
+            const end = parse(subject.endTime, 'HH:mm', new Date());
+            const diff = differenceInMinutes(end, start);
+            setDuration(diff);
+        } else {
+            setDuration(settings.classPeriodDuration || 60);
+        }
+
       } else {
         // Reset form for new subject
         const newStartTime = preselectedStartTime || '';
+        const newDuration = settings.classPeriodDuration || 60;
         setName('');
         setTeacher('');
         setDay(preselectedDay !== undefined ? String(preselectedDay) : '');
         setStartTime(newStartTime);
-        setEndTime(calculateEndTime(newStartTime));
+        setDuration(newDuration);
+        setEndTime(calculateEndTime(newStartTime, newDuration));
       }
     }
-  }, [open, subject, preselectedDay, preselectedStartTime]);
+  }, [open, subject, preselectedDay, preselectedStartTime, settings.classPeriodDuration]);
 
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartTime = e.target.value;
     setStartTime(newStartTime);
-    setEndTime(calculateEndTime(newStartTime));
+    if(typeof duration === 'number') {
+        setEndTime(calculateEndTime(newStartTime, duration));
+    }
   };
+
+  const handleDurationChange = (value: string) => {
+    const newDuration = parseInt(value, 10);
+    setDuration(newDuration);
+    if(startTime) {
+        setEndTime(calculateEndTime(startTime, newDuration));
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,10 +243,26 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
                     <Label htmlFor="start-time" className="text-sm font-normal text-muted-foreground">Start Time</Label>
                     <Input id="start-time" type="time" value={startTime} onChange={handleStartTimeChange} className="bg-transparent border-none text-base p-0 h-auto" />
                 </div>
-                <div className="bg-muted/50 p-4 rounded-lg">
-                    <Label htmlFor="end-time" className="text-sm font-normal text-muted-foreground">End Time</Label>
-                    <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-transparent border-none text-base p-0 h-auto" />
+                 <div className="bg-muted/50 rounded-lg">
+                    <Label className="text-sm font-normal text-muted-foreground px-4 pt-4">Duration</Label>
+                    <Select onValueChange={handleDurationChange} value={String(duration)}>
+                        <SelectTrigger className="bg-transparent border-none text-base h-auto">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="40">40 minutes</SelectItem>
+                            <SelectItem value="45">45 minutes</SelectItem>
+                            <SelectItem value="50">50 minutes</SelectItem>
+                            <SelectItem value="60">1 hour</SelectItem>
+                            <SelectItem value="90">1 hour 30 minutes</SelectItem>
+                            <SelectItem value="120">2 hours</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
+            </div>
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <Label htmlFor="end-time" className="text-sm font-normal text-muted-foreground">End Time</Label>
+              <Input id="end-time" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-transparent border-none text-base p-0 h-auto" />
             </div>
 
           </div>
