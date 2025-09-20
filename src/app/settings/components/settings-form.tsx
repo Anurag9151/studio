@@ -173,7 +173,7 @@ export default function SettingsForm() {
         title: "Report Generated",
         description: "Your PDF report has been downloaded."
     });
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -322,7 +322,7 @@ export default function SettingsForm() {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete all your subjects, attendance records, and holidays. Your settings will be kept.
-                        </d>
+                        </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -335,6 +335,3 @@ export default function SettingsForm() {
     </div>
   );
 }
-
-    
-    
