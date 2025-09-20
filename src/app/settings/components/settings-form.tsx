@@ -297,12 +297,20 @@ export default function SettingsForm() {
 
         <Card>
             <CardHeader>
-                <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
+                <CardTitle>Data Management</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
                 <Button variant="outline" className="w-full flex items-center gap-2" onClick={handleExport}>
                     <FileDown className="h-4 w-4" /> Export Report as PDF
                 </Button>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
+            </CardHeader>
+            <CardContent>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full flex items-center gap-2">
@@ -314,7 +322,7 @@ export default function SettingsForm() {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete all your subjects, attendance records, and holidays. Your settings will be kept.
-                        </AlertDialogDescription>
+                        </d>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -328,4 +336,5 @@ export default function SettingsForm() {
   );
 }
 
+    
     
