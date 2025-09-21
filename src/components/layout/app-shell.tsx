@@ -33,23 +33,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const title = getPageTitle();
 
   const handleShare = async () => {
-    const shareData = {
-      title: 'MarkIt - Attendance Manager',
-      text: 'Check out this awesome attendance tracking app!',
-      url: window.location.origin
-    };
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareData.url);
-        toast({
-          title: "Link Copied!",
-          description: "App link copied to your clipboard."
-        });
-      }
+      await navigator.clipboard.writeText(window.location.origin);
+      toast({
+        title: "Link Copied!",
+        description: "App link copied to your clipboard."
+      });
     } catch (error) {
-      console.error('Error sharing:', error);
+      console.error('Error copying to clipboard:', error);
+      toast({
+        title: "Error",
+        description: "Could not copy link to clipboard.",
+        variant: "destructive"
+      });
     }
   };
 
