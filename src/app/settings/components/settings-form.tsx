@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, FileDown } from "lucide-react";
+import { Trash2, FileDown, Share2 } from "lucide-react";
 import { exportToPDF } from "@/lib/pdf-export";
 
 
@@ -175,6 +175,30 @@ export default function SettingsForm() {
     });
   }
 
+  const handleShare = async () => {
+    const shareData = {
+      title: 'MarkIt - Attendance Manager',
+      text: 'Check out this awesome attendance tracking app!',
+      url: window.location.origin
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for desktop or unsupported browsers
+        await navigator.clipboard.writeText(shareData.url);
+        toast({
+          title: "Link Copied!",
+          description: "App link copied to your clipboard."
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      // We don't show a toast here because the user might have cancelled the share action intentionally.
+    }
+  };
+
+
   return (
     <div className="space-y-6">
         <Card>
@@ -295,6 +319,17 @@ export default function SettingsForm() {
                         </SelectContent>
                     </Select>
                 </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Share with Friends</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Button variant="outline" className="w-full flex items-center gap-2" onClick={handleShare}>
+                    <Share2 className="h-4 w-4" /> Share App
+                </Button>
             </CardContent>
         </Card>
 
