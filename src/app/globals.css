@@ -58,8 +58,20 @@
     --ring: 142 76% 36%;
   }
   .theme-purple {
-      --primary: 262 84% 59%;
-      --ring: 262 84% 59%;
+    --primary: 262 84% 59%;
+    --ring: 262 84% 59%;
+  }
+  .theme-red {
+    --primary: 0 72% 51%;
+    --ring: 0 72% 51%;
+  }
+  .theme-orange {
+    --primary: 25 95% 53%;
+    --ring: 25 95% 53%;
+  }
+  .theme-yellow {
+    --primary: 48 96% 50%;
+    --ring: 48 96% 50%;
   }
 }
 

@@ -24,7 +24,7 @@ export type Holiday = {
 
 export type AppSettings = {
   targetPercentage: number;
-  theme?: 'blue' | 'green' | 'purple';
+  theme?: 'blue' | 'green' | 'purple' | 'red' | 'orange' | 'yellow';
   mode?: 'light' | 'dark';
   workingDays?: 'Mon-Fri' | 'Mon-Sat';
   startTime?: string; // "HH:mm"

@@ -66,7 +66,7 @@ export default function SettingsForm() {
 
     // Apply theme/mode to body
     document.body.classList.toggle('dark', settings.mode === 'dark');
-    document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple');
+    document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-red', 'theme-orange', 'theme-yellow');
     if(settings.theme) {
       document.body.classList.add(`theme-${settings.theme}`);
     }
@@ -84,7 +84,7 @@ export default function SettingsForm() {
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     setSettings(prev => ({ ...prev, theme: newTheme as any }));
-    document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple');
+    document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-red', 'theme-orange', 'theme-yellow');
     if (newTheme) {
         document.body.classList.add(`theme-${newTheme}`);
     }
@@ -173,7 +173,7 @@ export default function SettingsForm() {
         title: "Report Generated",
         description: "Your PDF report has been downloaded."
     });
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -198,6 +198,9 @@ export default function SettingsForm() {
                             <SelectItem value="blue">Blue</SelectItem>
                             <SelectItem value="green">Green</SelectItem>
                             <SelectItem value="purple">Purple</SelectItem>
+                            <SelectItem value="red">Red</SelectItem>
+                            <SelectItem value="orange">Orange</SelectItem>
+                            <SelectItem value="yellow">Yellow</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

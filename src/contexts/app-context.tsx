@@ -38,7 +38,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const applyTheme = () => {
-      document.body.classList.remove('dark', 'light', 'theme-blue', 'theme-green', 'theme-purple');
+      document.body.classList.remove('dark', 'light', 'theme-blue', 'theme-green', 'theme-purple', 'theme-red', 'theme-orange', 'theme-yellow');
       document.body.classList.add(settings.mode || 'light');
       if (settings.theme) {
         document.body.classList.add(`theme-${settings.theme}`);
