@@ -1,17 +1,13 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, BarChart2, User, Home, MoreVertical, ChevronLeft } from 'lucide-react';
+import { Calendar, BarChart2, User, Home, Share2, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddSubjectSheet } from '@/app/timetable/components/add-subject-sheet';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -23,6 +19,7 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
 
   const getPageTitle = () => {
     if (pathname.includes('/dashboard')) return 'MarkIt';
@@ -34,6 +31,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isSubPage = !['/dashboard', '/'].includes(pathname);
   const title = getPageTitle();
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'MarkIt - Attendance Manager',
+      text: 'Check out this awesome attendance tracking app!',
+      url: window.location.origin
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        toast({
+          title: "Link Copied!",
+          description: "App link copied to your clipboard."
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
 
   return (
     <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col relative">
@@ -50,9 +68,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}>{title}</h1>
         </div>
         
-        {pathname.includes('/timetable') && (
-            <AddSubjectSheet />
-        )}
+        <div className="flex items-center gap-2">
+            {pathname.includes('/timetable') && (
+                <AddSubjectSheet />
+            )}
+             <Button variant="ghost" size="icon" onClick={handleShare}>
+                <Share2 size={20} />
+            </Button>
+        </div>
       </header>
       <main className="flex-1 overflow-y-auto pb-20">
         <div className="p-4 md:p-6 pt-0">
