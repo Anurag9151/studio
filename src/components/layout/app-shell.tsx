@@ -33,19 +33,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const title = getPageTitle();
 
   const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.origin);
-      toast({
-        title: "Link Copied!",
-        description: "App link copied to your clipboard."
-      });
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      toast({
-        title: "Error",
-        description: "Could not copy link to clipboard.",
-        variant: "destructive"
-      });
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'MarkIt',
+          text: 'Check out MarkIt, the smart attendance tracker!',
+          url: window.location.origin,
+        });
+      } catch (error) {
+        // We can ignore the error if the user cancels the share sheet
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+           toast({
+            title: "Error",
+            description: "Could not share the app.",
+            variant: "destructive"
+          });
+        }
+      }
+    } else {
+      // Fallback for browsers that don't support navigator.share (e.g. desktop)
+      try {
+        await navigator.clipboard.writeText(window.location.origin);
+        toast({
+          title: "Link Copied!",
+          description: "App link copied to your clipboard."
+        });
+      } catch (err) {
+         toast({
+          title: "Error",
+          description: "Could not copy link to clipboard.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
