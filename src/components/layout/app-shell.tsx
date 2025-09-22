@@ -41,15 +41,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           url: window.location.origin,
         });
       } catch (error) {
-        // We can ignore the error if the user cancels the share sheet
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Error sharing:', error);
-           toast({
-            title: "Error",
-            description: "Could not share the app.",
-            variant: "destructive"
-          });
+        // Ignore errors from the user cancelling the share sheet
+        const err = error as Error;
+        if (err.name === 'AbortError' || err.message.includes('Permission denied')) {
+          // Do nothing if user cancels
+          return;
         }
+        
+        toast({
+          title: "Error",
+          description: "Could not share the app.",
+          variant: "destructive"
+        });
       }
     } else {
       // Fallback for browsers that don't support navigator.share (e.g. desktop)
