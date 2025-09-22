@@ -33,30 +33,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const title = getPageTitle();
 
   const handleShare = async () => {
+    const shareData = {
+      title: 'MarkIt',
+      text: 'Check out MarkIt, the smart attendance tracker!',
+      url: window.location.origin,
+    };
+
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'MarkIt',
-          text: 'Check out MarkIt, the smart attendance tracker!',
-          url: window.location.origin,
-        });
+        await navigator.share(shareData);
       } catch (error) {
-        // Ignore errors from the user cancelling the share sheet
         const err = error as Error;
-        if (err.name === 'AbortError' || err.message.includes('Permission denied')) {
-          // Do nothing if user cancels
+        // If the user cancels the share dialog, do nothing.
+        if (err.name === 'AbortError') {
           return;
         }
-        
-        toast({
-          title: "Error",
-          description: "Could not share the app.",
-          variant: "destructive"
-        });
+        // If sharing fails for other reasons, fall back to copying the link.
+        copyLinkToClipboard();
       }
     } else {
-      // Fallback for browsers that don't support navigator.share (e.g. desktop)
-      try {
+      // Fallback for browsers that don't support navigator.share.
+      copyLinkToClipboard();
+    }
+  };
+
+  const copyLinkToClipboard = async () => {
+     try {
         await navigator.clipboard.writeText(window.location.origin);
         toast({
           title: "Link Copied!",
@@ -69,8 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           variant: "destructive"
         });
       }
-    }
-  };
+  }
 
   return (
     <div className="md:max-w-sm md:mx-auto bg-background min-h-screen flex flex-col relative">
