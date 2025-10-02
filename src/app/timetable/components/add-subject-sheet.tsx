@@ -20,12 +20,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, CalendarDays } from 'lucide-react';
 import { useAppContext } from '@/contexts/app-context';
 import { useToast } from '@/hooks/use-toast';
 import { getWeekDays } from '@/lib/utils';
 import type { Subject } from '@/lib/types';
 import { addMinutes, format, parse, differenceInMinutes } from 'date-fns';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type AddSubjectSheetProps = {
   subject?: Subject;
@@ -35,17 +41,18 @@ type AddSubjectSheetProps = {
 };
 
 export function AddSubjectSheet({ subject, children, day: preselectedDay, startTime: preselectedStartTime }: AddSubjectSheetProps) {
-  const { subjects, setSubjects, settings } = useAppContext();
+  const { subjects, setSubjects, settings, setAttendanceRecords } = useAppContext();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
   // Form state
   const [name, setName] = useState('');
   const [teacher, setTeacher] = useState('');
-  const [day, setDay] = useState('');
+  const [days, setDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [duration, setDuration] = useState<number | string>(settings.classPeriodDuration || 60);
+  const [editingGroupIds, setEditingGroupIds] = useState<string[]>([]);
 
   const weekDays = getWeekDays();
   const chartColors = [
@@ -66,9 +73,19 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
   useEffect(() => {
     if (open) {
       if (subject) {
+        // Editing mode: find all instances of this class (same name and start time)
+        const group = subjects.filter(
+            s => s.name === subject.name && s.startTime === subject.startTime
+        );
+        const groupIds = group.map(s => s.id);
+        const groupDays = group.map(s => s.day);
+
+        setEditingGroupIds(groupIds);
+        setDays(groupDays);
+        
+        // Set other form fields from the subject that was clicked
         setName(subject.name || '');
         setTeacher(subject.teacher || '');
-        setDay(subject.day !== undefined ? String(subject.day) : '');
         setStartTime(subject.startTime || '');
         setEndTime(subject.endTime || '');
         if (subject.startTime && subject.endTime) {
@@ -79,20 +96,20 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
         } else {
             setDuration(settings.classPeriodDuration || 60);
         }
-
       } else {
-        // Reset form for new subject
+        // Adding mode
         const newStartTime = preselectedStartTime || '';
         const newDuration = settings.classPeriodDuration || 60;
         setName('');
         setTeacher('');
-        setDay(preselectedDay !== undefined ? String(preselectedDay) : '');
+        setDays(preselectedDay !== undefined ? [preselectedDay] : []);
+        setEditingGroupIds([]);
         setStartTime(newStartTime);
         setDuration(newDuration);
         setEndTime(calculateEndTime(newStartTime, newDuration));
       }
     }
-  }, [open, subject, preselectedDay, preselectedStartTime, settings.classPeriodDuration]);
+  }, [open, subject, subjects, preselectedDay, preselectedStartTime, settings.classPeriodDuration]);
 
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newStartTime = e.target.value;
@@ -112,10 +129,10 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !day || !startTime || !endTime) {
+    if (!name || days.length === 0 || !startTime || !endTime) {
       toast({
         title: "Incomplete Form",
-        description: "Please fill out all fields.",
+        description: "Please fill out name, days, and time.",
         variant: "destructive",
       });
       return;
@@ -129,74 +146,90 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
       });
       return;
     }
-
-    const numericDay = parseInt(day, 10);
-    if (isNaN(numericDay)) {
-        toast({
-            title: "Invalid Day",
-            description: "Please select a valid day.",
-            variant: "destructive",
-        });
-        return;
-    }
     
-    // Check if a subject with this name already exists
-    const existingSubject = subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
-    let finalColor = existingSubject?.color;
+    // Find color
+    const existingSubjectForColor = subjects.find(s => s.name.toLowerCase() === name.toLowerCase() && !editingGroupIds.includes(s.id));
+    let finalColor = existingSubjectForColor?.color;
+    if (subject && subject.name.toLowerCase() === name.toLowerCase()) {
+        finalColor = subject.color;
+    }
 
     if (!finalColor) {
-      const uniqueSubjectNames = new Set(subjects.map(s => s.name));
-      if (!existingSubject) {
+      const uniqueSubjectNames = new Set(subjects.filter(s => !editingGroupIds.includes(s.id)).map(s => s.name));
+       if (!uniqueSubjectNames.has(name)) {
           uniqueSubjectNames.add(name);
       }
       const uniqueNamesCount = Array.from(uniqueSubjectNames).length;
-      finalColor = chartColors[(uniqueNamesCount - 1) % chartColors.length];
+      finalColor = chartColors[(uniqueNamesCount) % chartColors.length];
+    }
+    
+    const subjectsFromOriginalGroup = subjects.filter(s => editingGroupIds.includes(s.id));
+    const originalDays = subjectsFromOriginalGroup.map(s => s.day);
+    
+    const daysToDelete = originalDays.filter(d => !days.includes(d));
+    const daysToAdd = days.filter(d => !originalDays.includes(d));
+    const daysToKeepAndUpdate = originalDays.filter(d => days.includes(d));
+
+    let currentSubjects = [...subjects];
+    const idsToDelete: string[] = [];
+
+    // 1. Delete subjects for days that were unchecked
+    daysToDelete.forEach(dayToDelete => {
+        const subjectToDelete = subjectsFromOriginalGroup.find(s => s.day === dayToDelete);
+        if (subjectToDelete) {
+            idsToDelete.push(subjectToDelete.id);
+        }
+    });
+    
+    currentSubjects = currentSubjects.filter(s => !idsToDelete.includes(s.id));
+    if (idsToDelete.length > 0) {
+        setAttendanceRecords(prev => prev.filter(rec => !idsToDelete.includes(rec.subjectId)));
     }
 
-
-    if (subject) {
-      // If we are editing, we need to decide if we update colors for all subjects with the same name.
-      // If the name has changed, all subjects with the old name should retain their color, and this one gets a new one.
-      const oldName = subject.name;
-      const newName = name;
-      const updatedSubjects = subjects.map(s => {
-        // Update the subject being edited
-        if (s.id === subject.id) {
-          return { ...s, name: newName, teacher, day: numericDay, startTime, endTime, color: finalColor };
-        }
-        // If other subjects share the new name, update their color too
-        if (s.name.toLowerCase() === newName.toLowerCase()) {
-            return { ...s, color: finalColor };
+    // 2. Update subjects for days that remained checked
+    currentSubjects = currentSubjects.map(s => {
+        if (daysToKeepAndUpdate.includes(s.day) && editingGroupIds.includes(s.id)) {
+            return {
+                ...s,
+                name,
+                teacher,
+                startTime,
+                endTime,
+                color: finalColor,
+            };
         }
         return s;
-      });
-      setSubjects(updatedSubjects);
-      toast({ title: "Subject Updated", description: `${name} has been updated.` });
+    });
 
-    } else {
-       // On adding a new subject, if other subjects with the same name exist, use their color.
-       const newSubject: Subject = {
+    // 3. Add new subjects for newly checked days
+    const newSubjects: Subject[] = daysToAdd.map(dayToAdd => ({
         id: crypto.randomUUID(),
         name,
         teacher,
-        day: numericDay,
+        day: dayToAdd,
         startTime,
         endTime,
         color: finalColor,
-      };
+    }));
+    currentSubjects.push(...newSubjects);
 
-      const updatedSubjects = subjects.map(s => 
-          s.name.toLowerCase() === name.toLowerCase() 
-          ? { ...s, color: finalColor } 
-          : s
-      );
+    // 4. Final color sync for all subjects with this name
+    currentSubjects = currentSubjects.map(s => 
+        s.name.toLowerCase() === name.toLowerCase() 
+        ? { ...s, color: finalColor } 
+        : s
+    );
 
-      setSubjects([...updatedSubjects, newSubject]);
-      toast({ title: "Subject Added", description: `${name} has been added to your timetable.` });
-    }
+    setSubjects(currentSubjects);
+    
+    toast({ 
+      title: subject ? "Class Schedule Updated" : "Class Schedule Added",
+      description: `${name} is now scheduled for the selected days.`
+    });
 
     setOpen(false);
   };
+
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -225,17 +258,41 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
             </div>
 
             <div className="bg-muted/50 p-4 rounded-lg">
-                <Label htmlFor="day" className="text-sm font-normal text-muted-foreground">Day</Label>
-                <Select onValueChange={setDay} value={day}>
-                    <SelectTrigger className="bg-transparent border-none text-base p-0 h-auto">
-                        <SelectValue placeholder="Select a day" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    {weekDays.map((weekday, index) => (
-                        <SelectItem key={weekday} value={String(index)}>{weekday}</SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
+                <Label className="text-sm font-normal text-muted-foreground">Days</Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-left font-normal bg-transparent border-none text-base p-0 h-auto mt-1 hover:bg-transparent"
+                        >
+                            <span className="truncate text-foreground">
+                                {days.length > 0
+                                    ? days.sort().map(d => weekDays[d]).join(', ')
+                                    : 'Select days'
+                                }
+                            </span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <div className="p-4 grid gap-2">
+                            {weekDays.map((weekday, dayIndex) => {
+                                if (dayIndex === 0) return null; // Skip Sunday
+                                return (
+                                    <div key={dayIndex} className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id={`day-${dayIndex}`}
+                                            checked={days.includes(dayIndex)}
+                                            onCheckedChange={(checked) => {
+                                                setDays(prev => checked ? [...prev, dayIndex] : prev.filter(d => d !== dayIndex))
+                                            }}
+                                        />
+                                        <Label htmlFor={`day-${dayIndex}`} className="font-normal text-foreground">{weekday}</Label>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
