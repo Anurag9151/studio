@@ -34,7 +34,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
 function CopyScheduleDialog({ sourceDay, sourceSubjects }: { sourceDay: number; sourceSubjects: Subject[] }) {
-    const { subjects, setSubjects } = useAppContext();
+    const { subjects, setSubjects, settings } = useAppContext();
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
@@ -42,11 +42,11 @@ function CopyScheduleDialog({ sourceDay, sourceSubjects }: { sourceDay: number; 
 
     const workingDayIndexes = useMemo(() => {
         const indexes = [1, 2, 3, 4, 5]; // Mon-Fri
-        if (subjects.some(s => s.day === 6)) { // Check if Saturday exists in schedule
+        if (settings.workingDays === 'Mon-Sat') {
             indexes.push(6);
         }
         return indexes.filter(d => d !== sourceDay);
-    }, [subjects, sourceDay]);
+    }, [settings.workingDays, sourceDay]);
 
 
     const handleCopy = () => {
