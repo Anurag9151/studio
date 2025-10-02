@@ -307,6 +307,7 @@ export function AddSubjectSheet({ subject, children, day: preselectedDay, startT
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="30">30 minutes</SelectItem>
                             <SelectItem value="40">40 minutes</SelectItem>
                             <SelectItem value="45">45 minutes</SelectItem>
                             <SelectItem value="50">50 minutes</SelectItem>
