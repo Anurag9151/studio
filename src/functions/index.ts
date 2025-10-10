@@ -35,35 +35,39 @@ export const sendScheduledReminders = functions.pubsub
 
     console.log(`Current time is: ${currentTime}`);
 
-    // Get all user settings
-    // In a real app with many users, you would query for specific settings.
-    const settingsSnapshot = await db.collection("userSettings").get();
+    // Get all user settings where reminders are enabled
+    const settingsSnapshot = await db.collection("userSettings")
+      .where('remindersEnabled', '==', true)
+      .where('reminderTime', '==', currentTime)
+      .get();
+      
+    if (settingsSnapshot.empty) {
+      console.log("No users with reminders enabled for the current time.");
+      return;
+    }
 
     const remindersToSend: Promise<admin.messaging.MessagingPayload>[] = [];
 
     for (const doc of settingsSnapshot.docs) {
       const userId = doc.id;
-      const settings = doc.data() as AppSettings;
+      
+      console.log(`Reminder time matched for user: ${userId}`);
 
-      if (settings.remindersEnabled && settings.reminderTime === currentTime) {
-        console.log(`Reminder time matched for user: ${userId}`);
+      // Get the user's FCM token
+      const tokenDoc = await db.collection("fcmTokens").doc(userId).get();
+      if (tokenDoc.exists) {
+        const { token } = tokenDoc.data() as { token: string };
 
-        // Get the user's FCM token
-        const tokenDoc = await db.collection("fcmTokens").doc(userId).get();
-        if (tokenDoc.exists) {
-          const { token } = tokenDoc.data() as { token: string };
-
-          const payload: admin.messaging.MessagingPayload = {
-            notification: {
-              title: "Attendance Reminder!",
-              body: "Don't forget to mark your attendance for today.",
-              icon: "/icons/icon-192x192.png", // Optional: path to an icon
-            },
-          };
-          
-          console.log(`Sending notification to user ${userId}`);
-          remindersToSend.push(messaging.sendToDevice(token, payload));
-        }
+        const payload: admin.messaging.MessagingPayload = {
+          notification: {
+            title: "Attendance Reminder!",
+            body: "Don't forget to mark your attendance for today.",
+            icon: "/icons/icon-192x192.png", // Optional: path to an icon
+          },
+        };
+        
+        console.log(`Sending notification to user ${userId}`);
+        remindersToSend.push(messaging.sendToDevice(token, payload));
       }
     }
 
@@ -74,3 +78,4 @@ export const sendScheduledReminders = functions.pubsub
       console.log("No reminders to send at this time.");
     }
   });
+
