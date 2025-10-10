@@ -13,50 +13,6 @@ function NotificationInitializer() {
   const { auth, firestore, isUserLoading, user } = useFirebase();
   const { settings } = useAppContext();
 
-  // Effect for setting up PUSH notifications (FCM)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window) || isUserLoading || !settings.remindersEnabled) {
-      return;
-    }
-
-    const setupPushNotifications = async () => {
-      if (!auth || !firestore || !user) {
-        return;
-      }
-      try {
-        // We only request permission if it hasn't been granted or denied yet
-        if (Notification.permission === 'default') {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-              console.log('Notification permission granted.');
-              const token = await initializeFcm(auth, firestore);
-              if (token) {
-                console.log("FCM Token:", token);
-                toast({
-                  title: "Push Notifications Enabled",
-                  description: "You will now receive reminders.",
-                });
-              }
-            } else {
-              console.log('Notification permission denied.');
-            }
-        } else if (Notification.permission === 'granted') {
-            // If already granted, just ensure the token is up-to-date
-            await initializeFcm(auth, firestore);
-        }
-      } catch (error) {
-        console.error('Error setting up push notifications:', error);
-        toast({
-          title: "Push Notification Error",
-          description: "Could not enable push notifications.",
-          variant: "destructive"
-        });
-      }
-    };
-
-    setupPushNotifications();
-  }, [toast, auth, firestore, isUserLoading, user, settings.remindersEnabled]);
-  
   // Effect for IN-APP reminders
   useEffect(() => {
     if (!settings.remindersEnabled || !settings.reminderTime) {
