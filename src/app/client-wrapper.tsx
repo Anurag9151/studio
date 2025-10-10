@@ -2,24 +2,32 @@
 
 import { AppProvider } from '@/contexts/app-context';
 import { AppShell } from '@/components/layout/app-shell';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { useEffect } from 'react';
 import { initializeFcm } from '@/firebase/fcm';
 import { useToast } from '@/hooks/use-toast';
 
-export default function ClientWrapper({ children }: { children: React.ReactNode }) {
+function NotificationInitializer() {
   const { toast } = useToast();
+  const { auth, firestore, isUserLoading, user } = useFirebase();
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window) || isUserLoading) {
+      return;
+    }
+
     const setupNotifications = async () => {
+      if (!auth || !firestore || !user) {
+        // Firebase services or user not ready
+        return;
+      }
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
           console.log('Notification permission granted.');
-          const token = await initializeFcm();
-          if(token) {
+          const token = await initializeFcm(auth, firestore);
+          if (token) {
             console.log("FCM Token:", token);
-            // Here you would typically send the token to your server
             toast({
               title: "Notifications Enabled",
               description: "You will now receive reminders.",
@@ -30,26 +38,28 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
         }
       } catch (error) {
         console.error('Error setting up notifications:', error);
-         toast({
-            title: "Notification Error",
-            description: "Could not enable notifications.",
-            variant: "destructive"
+        toast({
+          title: "Notification Error",
+          description: "Could not enable notifications.",
+          variant: "destructive"
         });
       }
     };
 
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      // Only run on client and if notifications are supported
-      setupNotifications();
-    }
-  }, [toast]);
+    setupNotifications();
+  }, [toast, auth, firestore, isUserLoading, user]);
 
+  return null; // This component does not render anything
+}
+
+export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   return (
     <AppProvider>
       <FirebaseClientProvider>
         <AppShell>
           {children}
         </AppShell>
+        <NotificationInitializer />
       </FirebaseClientProvider>
     </AppProvider>
   );

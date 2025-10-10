@@ -120,6 +120,23 @@
         "targetAttendancePercentage",
         "theme"
       ]
+    },
+     "FCMToken": {
+      "title": "FCMToken",
+      "type": "object",
+      "description": "Stores a Firebase Cloud Messaging (FCM) device token for a user.",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "The FCM device token."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the token was created."
+        }
+      },
+      "required": ["token", "createdAt"]
     }
   },
   "auth": {
@@ -192,6 +209,16 @@
               "description": "Unique identifier for the user settings."
             }
           ]
+        }
+      },
+       {
+        "path": "/fcmTokens/{userId}",
+        "definition": {
+          "entityName": "FCMToken",
+          "schema": {
+            "$ref": "#/backend/entities/FCMToken"
+          },
+          "description": "Stores FCM tokens for users to send push notifications."
         }
       }
     ],

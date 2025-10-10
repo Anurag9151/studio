@@ -2,9 +2,11 @@
 
 import { getMessaging, getToken } from 'firebase/messaging';
 import { getApp } from 'firebase/app';
+import { Auth } from 'firebase/auth';
+import { doc, Firestore, setDoc, serverTimestamp } from 'firebase/firestore';
 
-export const initializeFcm = async () => {
-  if (typeof window === 'undefined') {
+export const initializeFcm = async (auth: Auth, firestore: Firestore) => {
+  if (typeof window === 'undefined' || !auth.currentUser) {
     return null;
   }
 
@@ -19,7 +21,16 @@ export const initializeFcm = async () => {
     const currentToken = await getToken(messaging, { vapidKey });
     if (currentToken) {
       console.log('FCM token:', currentToken);
-      // You would typically send this token to your backend to store it.
+      
+      const userId = auth.currentUser.uid;
+      const tokenRef = doc(firestore, 'fcmTokens', userId);
+      
+      // Save the token to Firestore
+      await setDoc(tokenRef, {
+        token: currentToken,
+        createdAt: serverTimestamp(),
+      });
+      
       return currentToken;
     } else {
       console.log('No registration token available. Request permission to generate one.');
