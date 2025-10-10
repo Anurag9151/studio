@@ -42,8 +42,6 @@ export default function SettingsForm() {
   const [workingDays, setWorkingDays] = useState('Mon-Fri');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
-  const [remindersEnabled, setRemindersEnabled] = useState(false);
-  const [reminderTime, setReminderTime] = useState('18:00');
   const [classPeriodDuration, setClassPeriodDuration] = useState(60);
   const [lunchStartTime, setLunchStartTime] = useState('13:00');
   const [lunchDuration, setLunchDuration] = useState(60);
@@ -57,8 +55,6 @@ export default function SettingsForm() {
     setWorkingDays(settings.workingDays || 'Mon-Fri');
     setStartTime(settings.startTime || '09:00');
     setEndTime(settings.endTime || '17:00');
-    setRemindersEnabled(settings.remindersEnabled || false);
-    setReminderTime(settings.reminderTime || '18:00');
     setClassPeriodDuration(settings.classPeriodDuration || 60);
     setLunchStartTime(settings.lunchStartTime || '13:00');
     setLunchDuration(settings.lunchDuration || 60);
@@ -122,17 +118,6 @@ export default function SettingsForm() {
   const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEndTime(e.target.value);
     setSettings(prev => ({ ...prev, endTime: e.target.value }));
-  };
-
-  const handleRemindersToggle = (value: boolean) => {
-    setRemindersEnabled(value);
-    setSettings(prev => ({ ...prev, remindersEnabled: value }));
-    toast({ title: "Reminders Updated", description: `Attendance reminders ${value ? 'enabled' : 'disabled'}.` });
-  };
-
-  const handleReminderTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setReminderTime(e.target.value);
-    setSettings(prev => ({ ...prev, reminderTime: e.target.value }));
   };
 
   const handlePeriodDurationChange = (value: string) => {
@@ -216,24 +201,6 @@ export default function SettingsForm() {
                       <Input id="target-attendance" type="number" value={targetPercentage} onChange={handleTargetChange} className="w-20 text-center" min="0" max="100" />
                       <span>%</span>
                     </div>
-                </div>
-            </CardContent>
-        </Card>
-        
-        <Card>
-            <CardHeader><CardTitle>Notifications</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <Label htmlFor="reminders">Enable Reminders</Label>
-                    <Switch
-                        id="reminders"
-                        checked={remindersEnabled}
-                        onCheckedChange={handleRemindersToggle}
-                    />
-                </div>
-                 <div className="flex items-center justify-between">
-                    <Label htmlFor="reminder-time">Reminder Time</Label>
-                    <Input id="reminder-time" type="time" value={reminderTime} onChange={handleReminderTimeChange} className="w-[120px]" disabled={!remindersEnabled} />
                 </div>
             </CardContent>
         </Card>
@@ -340,5 +307,3 @@ export default function SettingsForm() {
     </div>
   );
 }
-
-    
