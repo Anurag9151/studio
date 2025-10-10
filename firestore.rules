@@ -1,0 +1,84 @@
+/**
+ * @fileoverview Firestore Security Rules
+ *
+ * Core Philosophy:
+ * This ruleset is designed for a local-only application and does not require any security rules.
+ * All rules are set to allow nothing, as no data is stored in Firestore.
+ *
+ * Data Structure:
+ * Not applicable, as no data is stored in Firestore.
+ *
+ * Key Security Decisions:
+ * No data is stored in Firestore. All reads and writes are denied.
+ *
+ * Denormalization for Authorization:
+ * Not applicable, as there is no data to authorize.
+ *
+ * Structural Segregation:
+ * Not applicable, as there is no data to segregate.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Denies all access to the /subjects collection.
+     * @path /subjects/{subjectId}
+     * @allow None, as Firestore is not used.
+     * @deny Any request, as Firestore is not used.
+     * @principle No Firestore usage is required for this application.
+     */
+    match /subjects/{subjectId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Denies all access to the /timetableEntries collection.
+     * @path /timetableEntries/{timetableEntryId}
+     * @allow None, as Firestore is not used.
+     * @deny Any request, as Firestore is not used.
+     * @principle No Firestore usage is required for this application.
+     */
+    match /timetableEntries/{timetableEntryId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Denies all access to the /attendanceRecords collection.
+     * @path /attendanceRecords/{attendanceRecordId}
+     * @allow None, as Firestore is not used.
+     * @deny Any request, as Firestore is not used.
+     * @principle No Firestore usage is required for this application.
+     */
+    match /attendanceRecords/{attendanceRecordId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Denies all access to the /userSettings collection.
+     * @path /userSettings/{userSettingsId}
+     * @allow None, as Firestore is not used.
+     * @deny Any request, as Firestore is not used.
+     * @principle No Firestore usage is required for this application.
+     */
+    match /userSettings/{userSettingsId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

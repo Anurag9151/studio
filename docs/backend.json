@@ -1,0 +1,200 @@
+{
+  "entities": {
+    "Subject": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subject",
+      "type": "object",
+      "description": "Represents a subject in the timetable.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Subject entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the subject."
+        },
+        "color": {
+          "type": "string",
+          "description": "Theme color of the subject (e.g., Blue, Green, Purple)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "color"
+      ]
+    },
+    "TimetableEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TimetableEntry",
+      "type": "object",
+      "description": "Represents a single entry in the timetable for a specific subject, day, and time slot.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TimetableEntry entity."
+        },
+        "subjectId": {
+          "type": "string",
+          "description": "Reference to Subject. (Relationship: Subject 1:N TimetableEntry)"
+        },
+        "dayOfWeek": {
+          "type": "number",
+          "description": "Day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Start time of the class in HH:mm format."
+        },
+        "endTime": {
+          "type": "string",
+          "description": "End time of the class in HH:mm format."
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration of the class in minutes."
+        }
+      },
+      "required": [
+        "id",
+        "subjectId",
+        "dayOfWeek",
+        "startTime",
+        "endTime",
+        "duration"
+      ]
+    },
+    "AttendanceRecord": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AttendanceRecord",
+      "type": "object",
+      "description": "Represents an attendance record for a specific timetable entry on a specific date.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AttendanceRecord entity."
+        },
+        "timetableEntryId": {
+          "type": "string",
+          "description": "Reference to TimetableEntry. (Relationship: TimetableEntry 1:N AttendanceRecord)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the attendance record in YYYY-MM-DD format.",
+          "format": "date"
+        },
+        "isPresent": {
+          "type": "boolean",
+          "description": "Indicates whether the student was present (true) or absent (false)."
+        }
+      },
+      "required": [
+        "id",
+        "timetableEntryId",
+        "date",
+        "isPresent"
+      ]
+    },
+    "UserSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserSettings",
+      "type": "object",
+      "description": "Represents user-specific settings, such as the target attendance percentage and theme preference.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserSettings entity. Should only ever be one."
+        },
+        "targetAttendancePercentage": {
+          "type": "number",
+          "description": "User-defined target attendance percentage (e.g., 75)."
+        },
+        "theme": {
+          "type": "string",
+          "description": "User's preferred theme (e.g., Light, Dark, Blue, Green)."
+        }
+      },
+      "required": [
+        "id",
+        "targetAttendancePercentage",
+        "theme"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/subjects/{subjectId}",
+        "definition": {
+          "entityName": "Subject",
+          "schema": {
+            "$ref": "#/backend/entities/Subject"
+          },
+          "description": "Collection to store subjects.",
+          "params": [
+            {
+              "name": "subjectId",
+              "description": "Unique identifier for the subject."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/timetableEntries/{timetableEntryId}",
+        "definition": {
+          "entityName": "TimetableEntry",
+          "schema": {
+            "$ref": "#/backend/entities/TimetableEntry"
+          },
+          "description": "Collection to store timetable entries.",
+          "params": [
+            {
+              "name": "timetableEntryId",
+              "description": "Unique identifier for the timetable entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/attendanceRecords/{attendanceRecordId}",
+        "definition": {
+          "entityName": "AttendanceRecord",
+          "schema": {
+            "$ref": "#/backend/entities/AttendanceRecord"
+          },
+          "description": "Collection to store attendance records.",
+          "params": [
+            {
+              "name": "attendanceRecordId",
+              "description": "Unique identifier for the attendance record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userSettings/{userSettingsId}",
+        "definition": {
+          "entityName": "UserSettings",
+          "schema": {
+            "$ref": "#/backend/entities/UserSettings"
+          },
+          "description": "Collection to store user settings.",
+          "params": [
+            {
+              "name": "userSettingsId",
+              "description": "Unique identifier for the user settings."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Given the application's requirement for local data storage using SQLite and the absence of Firebase or any external APIs, a Firestore structure is not applicable. The application is designed to function offline with local storage, rendering a cloud-based database structure irrelevant. Therefore, no Firestore structure is recommended."
+  }
+}
